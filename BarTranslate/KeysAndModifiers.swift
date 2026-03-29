@@ -10,6 +10,7 @@ import Foundation
 import Cocoa
 
 let keys: [Key] = [
+  .return,
   .a,
   .b,
   .c,

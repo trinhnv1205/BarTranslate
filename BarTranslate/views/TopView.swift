@@ -37,6 +37,15 @@ struct TopView: View {
                     }
                 }
                 NavTabButton(
+                    icon: "clock.arrow.circlepath",
+                    label: "History",
+                    isActive: contentViewState.currentView == .history
+                ) {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        contentViewState.currentView = .history
+                    }
+                }
+                NavTabButton(
                     icon: "gearshape",
                     label: "Settings",
                     isActive: contentViewState.currentView == .settings
@@ -81,15 +90,10 @@ struct NavTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 11, weight: .medium))
-                Text(label)
-                    .font(.system(size: 11, weight: .medium))
-            }
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .medium))
             .foregroundColor(isActive ? .primary : .secondary)
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
+            .frame(width: 28, height: 24)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(isActive
@@ -100,6 +104,8 @@ struct NavTabButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { isHovered = $0 }
+        .help(label)
+        .accessibilityLabel(Text(label))
         .keyboardShortcut(label == "Settings" ? "," : KeyEquivalent("\0"), modifiers: [])
     }
 }

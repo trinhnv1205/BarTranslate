@@ -15,7 +15,21 @@ struct SettingsView: View {
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = DefaultSettings.translationProvider
     @AppStorage("showHideKey") private var showHideKey: String = DefaultSettings.ToggleApp.key.description
     @AppStorage("showHideModifier") private var showHideModifier: String = DefaultSettings.ToggleApp.modifier.description
+    @AppStorage("translateNowKey") private var translateNowKey: String = DefaultSettings.TranslateNow.key.description
+    @AppStorage("translateNowModifier") private var translateNowModifier: String = DefaultSettings.TranslateNow.modifier.description
     @AppStorage("menuBarIcon") private var menuBarIcon: MenuBarIcon = DefaultSettings.menuBarIcon
+    @AppStorage("autoClipboardPaste") private var autoClipboardPaste: Bool = DefaultSettings.autoClipboardPaste
+    @AppStorage("autoClipboardTranslate") private var autoClipboardTranslate: Bool = DefaultSettings.autoClipboardTranslate
+    @AppStorage("historyLimit") private var historyLimit: Int = DefaultSettings.historyLimit
+    @AppStorage("inPlaceAction") private var inPlaceActionRaw: String = DefaultSettings.inPlaceAction.rawValue
+
+    private let historyOptions: [Int] = [50, 100, 150, 200]
+    private var inPlaceAction: Binding<InPlaceAction> {
+        Binding<InPlaceAction>(
+            get: { InPlaceAction(rawValue: inPlaceActionRaw) ?? .none },
+            set: { inPlaceActionRaw = $0.rawValue }
+        )
+    }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -59,6 +73,71 @@ struct SettingsView: View {
                             .pickerStyle(.menu)
                             .frame(width: 60)
                         }
+                    }
+                    SettingsRow(label: "Translate now") {
+                        HStack(spacing: 6) {
+                            Picker("", selection: $translateNowModifier) {
+                                ForEach(modifiers, id: \.self) { modifier in
+                                    Text(modifier.description).tag(modifier.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+
+                            Text("+")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+
+                            Picker("", selection: $translateNowKey) {
+                                ForEach(keys, id: \.self) { key in
+                                    Text(key.description).tag(key.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+                        }
+                    }
+                }
+
+                // Clipboard automation
+                SettingsSection(title: "Clipboard") {
+                    SettingsRow(label: "Auto paste on open") {
+                        Toggle("", isOn: $autoClipboardPaste)
+                            .labelsHidden()
+                    }
+                    SettingsRow(label: "Auto translate clipboard") {
+                        Toggle("", isOn: $autoClipboardTranslate)
+                            .labelsHidden()
+                    }
+                }
+
+                // History
+                SettingsSection(title: "History") {
+                    SettingsRow(label: "Saved items") {
+                        Picker("", selection: $historyLimit) {
+                            ForEach(historyOptions, id: \.self) { option in
+                                Text("\(option)").tag(option)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 90)
+                    }
+                }
+
+                // In-place action
+                SettingsSection(title: "In-Place") {
+                    SettingsRow(label: "After translation") {
+                        Picker("", selection: inPlaceAction) {
+                            Text("Do nothing").tag(InPlaceAction.none)
+                            Text("Copy result").tag(InPlaceAction.copy)
+                            Text("Paste to previous app").tag(InPlaceAction.paste)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 170)
                     }
                 }
 

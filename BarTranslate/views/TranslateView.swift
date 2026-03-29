@@ -156,6 +156,7 @@ struct WebView: NSViewRepresentable {
         config.userContentController.add(context.coordinator, name: "charCount")
         config.userContentController.add(context.coordinator, name: "resultAvailable")
         config.userContentController.add(context.coordinator, name: "urlChanged")
+        config.userContentController.add(context.coordinator, name: "sourceBlur")
 
         #if DEBUG
         config.preferences.setValue(true, forKey: "developerExtrasEnabled")
@@ -208,6 +209,23 @@ struct WebView: NSViewRepresentable {
                     }
                 }
 
+            case "sourceBlur":
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    guard self.parent.BT.hasResult else { return }
+
+                    self.parent.BT.captureAndStoreCurrentTranslation()
+
+                    guard let webView = self.parent.BT.webView else { return }
+                    readTranslationResult(from: webView) { text in
+                        guard let text, !text.isEmpty else { return }
+                        DispatchQueue.main.async {
+                            if let delegate = AppDelegate.instance {
+                                delegate.performInPlaceActionIfNeeded(with: text)
+                            }
+                        }
+                    }
+                }
+
             case "urlChanged":
                 if let urlString = message.body as? String {
                     let langs = parseLanguageParams(from: urlString)
@@ -232,6 +250,7 @@ struct WebView: NSViewRepresentable {
                     injectCharCountScript(webView: webView)
                     injectResultObserverScript(webView: webView)
                     injectLanguageTrackerScript(webView: webView)
+                    injectSourceBlurScript(webView: webView)
                 }
             }
         }

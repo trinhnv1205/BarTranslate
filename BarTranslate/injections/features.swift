@@ -35,6 +35,41 @@ func injectClipboardText(webView: WKWebView, text: String) {
     }
 }
 
+/// Tries to trigger translate now via Enter key or translate action button.
+func triggerTranslateNow(webView: WKWebView) {
+    let js = """
+    (function() {
+        function fireEnter(el) {
+            if (!el) return false;
+            var evDown = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', which: 13, keyCode: 13, bubbles: true });
+            var evUp = new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', which: 13, keyCode: 13, bubbles: true });
+            el.dispatchEvent(evDown);
+            el.dispatchEvent(evUp);
+            return true;
+        }
+
+        var ta = document.querySelector('textarea');
+        if (ta) {
+            ta.focus();
+            fireEnter(ta);
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            return true;
+        }
+
+        var actionButton = document.querySelector('button[aria-label*="Translate" i], button[jsname]');
+        if (actionButton) {
+            actionButton.click();
+            return true;
+        }
+
+        return false;
+    })();
+    """
+    webView.evaluateJavaScript(js) { _, error in
+        if let error = error { print("[TranslateNow] Error: \(error)") }
+    }
+}
+
 // MARK: - 2. Character Counter (JS → Swift via messageHandler)
 
 /// Injects JS that watches textarea input and sends char count to Swift
@@ -88,6 +123,21 @@ func readTranslationResult(from webView: WKWebView, completion: @escaping (Strin
             if (t.length > 2 && !s.closest('textarea') && !s.closest('[aria-label]')) return t;
         }
         return null;
+    })();
+    """
+    webView.evaluateJavaScript(js) { result, _ in
+        completion(result as? String)
+    }
+}
+
+/// Reads the source text currently present in the Google Translate textarea.
+func readSourceText(from webView: WKWebView, completion: @escaping (String?) -> Void) {
+    let js = """
+    (function() {
+        var ta = document.querySelector('textarea');
+        if (!ta) return null;
+        var text = (ta.value || '').trim();
+        return text.length > 0 ? text : null;
     })();
     """
     webView.evaluateJavaScript(js) { result, _ in
@@ -150,6 +200,30 @@ func injectLanguageTrackerScript(webView: WKWebView) {
     """
     webView.evaluateJavaScript(js) { _, error in
         if let error = error { print("[LangTracker] Error: \(error)") }
+    }
+}
+
+/// Injects JS that reports when the source textarea loses focus.
+func injectSourceBlurScript(webView: WKWebView) {
+    let js = """
+    (function() {
+        if (window.__btSourceBlurSetup) return;
+        window.__btSourceBlurSetup = true;
+
+        function setup() {
+            var ta = document.querySelector('textarea');
+            if (!ta) { setTimeout(setup, 400); return; }
+
+            ta.addEventListener('blur', function() {
+                try { window.webkit.messageHandlers.sourceBlur.postMessage(true); } catch(e) {}
+            });
+        }
+
+        setup();
+    })();
+    """
+    webView.evaluateJavaScript(js) { _, error in
+        if let error = error { print("[SourceBlur] Error: \(error)") }
     }
 }
 
