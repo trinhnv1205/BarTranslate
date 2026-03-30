@@ -15,9 +15,10 @@ struct SettingsView: View {
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = DefaultSettings.translationProvider
     @AppStorage("showHideKey") private var showHideKey: String = DefaultSettings.ToggleApp.key.description
     @AppStorage("showHideModifier") private var showHideModifier: String = DefaultSettings.ToggleApp.modifier.description
+    @AppStorage("showHideEnabled") private var showHideEnabled: Bool = true
     @AppStorage("translateNowKey") private var translateNowKey: String = DefaultSettings.TranslateNow.key.description
     @AppStorage("translateNowModifier") private var translateNowModifier: String = DefaultSettings.TranslateNow.modifier.description
-    @AppStorage("menuBarIcon") private var menuBarIcon: MenuBarIcon = DefaultSettings.menuBarIcon
+    @AppStorage("translateNowEnabled") private var translateNowEnabled: Bool = true
     @AppStorage("autoClipboardPaste") private var autoClipboardPaste: Bool = DefaultSettings.autoClipboardPaste
     @AppStorage("autoClipboardTranslate") private var autoClipboardTranslate: Bool = DefaultSettings.autoClipboardTranslate
     @AppStorage("historyLimit") private var historyLimit: Int = DefaultSettings.historyLimit
@@ -51,6 +52,9 @@ struct SettingsView: View {
                 SettingsSection(title: "Keyboard Shortcut") {
                     SettingsRow(label: "Toggle app") {
                         HStack(spacing: 6) {
+                            Toggle("", isOn: $showHideEnabled)
+                                .labelsHidden()
+
                             Picker("", selection: $showHideModifier) {
                                 ForEach(modifiers, id: \.self) { modifier in
                                     Text(modifier.description).tag(modifier.description)
@@ -59,10 +63,13 @@ struct SettingsView: View {
                             .labelsHidden()
                             .pickerStyle(.menu)
                             .frame(width: 60)
+                            .opacity(showHideEnabled ? 1.0 : 0.5)
+                            .disabled(!showHideEnabled)
 
                             Text("+")
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
+                                .opacity(showHideEnabled ? 1.0 : 0.5)
 
                             Picker("", selection: $showHideKey) {
                                 ForEach(keys, id: \.self) { key in
@@ -72,10 +79,15 @@ struct SettingsView: View {
                             .labelsHidden()
                             .pickerStyle(.menu)
                             .frame(width: 60)
+                            .opacity(showHideEnabled ? 1.0 : 0.5)
+                            .disabled(!showHideEnabled)
                         }
                     }
                     SettingsRow(label: "Translate now") {
                         HStack(spacing: 6) {
+                            Toggle("", isOn: $translateNowEnabled)
+                                .labelsHidden()
+
                             Picker("", selection: $translateNowModifier) {
                                 ForEach(modifiers, id: \.self) { modifier in
                                     Text(modifier.description).tag(modifier.description)
@@ -84,10 +96,13 @@ struct SettingsView: View {
                             .labelsHidden()
                             .pickerStyle(.menu)
                             .frame(width: 60)
+                            .opacity(translateNowEnabled ? 1.0 : 0.5)
+                            .disabled(!translateNowEnabled)
 
                             Text("+")
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
+                                .opacity(translateNowEnabled ? 1.0 : 0.5)
 
                             Picker("", selection: $translateNowKey) {
                                 ForEach(keys, id: \.self) { key in
@@ -97,6 +112,8 @@ struct SettingsView: View {
                             .labelsHidden()
                             .pickerStyle(.menu)
                             .frame(width: 60)
+                            .opacity(translateNowEnabled ? 1.0 : 0.5)
+                            .disabled(!translateNowEnabled)
                         }
                     }
                 }
@@ -138,22 +155,6 @@ struct SettingsView: View {
                         .labelsHidden()
                         .pickerStyle(.menu)
                         .frame(width: 170)
-                    }
-                }
-
-                // Menu bar icon
-                SettingsSection(title: "Menu Bar") {
-                    SettingsRow(label: "Icon style") {
-                        Picker("", selection: $menuBarIcon) {
-                            ForEach(MenuBarIcon.allCases) { icon in
-                                Image(icon.rawValue)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .tag(icon)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 80)
                     }
                 }
 

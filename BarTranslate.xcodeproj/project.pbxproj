@@ -22,6 +22,8 @@
 		45E1DB2F2A23316F00FA549C /* TranslateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E1DB2E2A23316F00FA549C /* TranslateView.swift */; };
 		45E44E562A23BEB500226A82 /* style.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E44E552A23BEB500226A82 /* style.swift */; };
 		45EF05232A234EAF00F5B8D4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EF05222A234EAF00F5B8D4 /* SettingsView.swift */; };
+		45FA10012DEC100100A1B2C3 /* features.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45FA10002DEC100100A1B2C3 /* features.swift */; };
+		45FA10032DEC100200A1B2C3 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45FA10022DEC100200A1B2C3 /* HistoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +43,8 @@
 		45E1DB2E2A23316F00FA549C /* TranslateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslateView.swift; sourceTree = "<group>"; };
 		45E44E552A23BEB500226A82 /* style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = style.swift; sourceTree = "<group>"; };
 		45EF05222A234EAF00F5B8D4 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		45FA10002DEC100100A1B2C3 /* features.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features.swift; sourceTree = "<group>"; };
+		45FA10022DEC100200A1B2C3 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				45D1EF792A20DA2D0029FACD /* ContentView.swift */,
+				45FA10022DEC100200A1B2C3 /* HistoryView.swift */,
 				45E1DB2C2A23312E00FA549C /* TopView.swift */,
 				45E1DB2E2A23316F00FA549C /* TranslateView.swift */,
 				45EF05222A234EAF00F5B8D4 /* SettingsView.swift */,
@@ -121,6 +126,7 @@
 				456FDE4A2DDA0FD100639F6A /* css */,
 				45E44E552A23BEB500226A82 /* style.swift */,
 				456FDE482DD9F04600639F6A /* autofocus.swift */,
+				45FA10002DEC100100A1B2C3 /* features.swift */,
 			);
 			path = injections;
 			sourceTree = "<group>";
@@ -203,7 +209,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				456FDE492DD9F04600639F6A /* autofocus.swift in Sources */,
+				45FA10012DEC100100A1B2C3 /* features.swift in Sources */,
 				45D1EF7A2A20DA2D0029FACD /* ContentView.swift in Sources */,
+				45FA10032DEC100200A1B2C3 /* HistoryView.swift in Sources */,
 				45E44E562A23BEB500226A82 /* style.swift in Sources */,
 				45E081CC2A68003E00D90780 /* DefaultSettings.swift in Sources */,
 				45921B272A791991007AAD78 /* Bundle.swift in Sources */,
@@ -281,12 +289,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = BarTranslate/BarTranslate.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"BarTranslate/Preview Content\"";
-				DEVELOPMENT_TEAM = G7QJ269WC7;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = R7Z376R9RS;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -429,12 +438,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = BarTranslate/BarTranslate.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"BarTranslate/Preview Content\"";
-				DEVELOPMENT_TEAM = G7QJ269WC7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

@@ -23,8 +23,7 @@ enum InPlaceAction: String, CaseIterable, Identifiable {
 }
 
 enum MenuBarIcon: String, CaseIterable, Identifiable {
-  case original = "MenuIcon"
-  case minimal = "MenuIconMinimal"
+  case yandex = "MenuIconYandex"
 
   var id: String { self.rawValue }
 }
@@ -32,7 +31,7 @@ enum MenuBarIcon: String, CaseIterable, Identifiable {
 struct DefaultSettings {
 
   static let translationProvider = TranslationProvider.google
-  static let menuBarIcon = MenuBarIcon.original
+  static let menuBarIcon = MenuBarIcon.yandex
 
   struct ToggleApp {
     static let key = Key(string: ";")!

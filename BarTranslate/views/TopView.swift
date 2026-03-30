@@ -14,14 +14,9 @@ struct TopView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            // App icon / brand
             Image(systemName: "translate")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.secondary)
-
-            Text("BarTranslate")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.primary)
 
             Spacer()
 

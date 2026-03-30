@@ -355,8 +355,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = DefaultSettings.translationProvider
     @AppStorage("showHideKey") private var showHideKey: String = DefaultSettings.ToggleApp.key.description
     @AppStorage("showHideModifier") private var showHideModifier: String = DefaultSettings.ToggleApp.modifier.description
+    @AppStorage("showHideEnabled") private var showHideEnabled: Bool = true
     @AppStorage("translateNowKey") private var translateNowKey: String = DefaultSettings.TranslateNow.key.description
     @AppStorage("translateNowModifier") private var translateNowModifier: String = DefaultSettings.TranslateNow.modifier.description
+    @AppStorage("translateNowEnabled") private var translateNowEnabled: Bool = true
     @AppStorage("menuBarIcon") private var menuBarIcon: MenuBarIcon = DefaultSettings.menuBarIcon
     @AppStorage("autoClipboardPaste") private var autoClipboardPaste: Bool = DefaultSettings.autoClipboardPaste
     @AppStorage("autoClipboardTranslate") private var autoClipboardTranslate: Bool = DefaultSettings.autoClipboardTranslate
@@ -366,24 +368,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         super.init()
         UserDefaults.standard.addObserver(self, forKeyPath: "showHideKey", options: .new, context: nil)
         UserDefaults.standard.addObserver(self, forKeyPath: "showHideModifier", options: .new, context: nil)
+        UserDefaults.standard.addObserver(self, forKeyPath: "showHideEnabled", options: .new, context: nil)
         UserDefaults.standard.addObserver(self, forKeyPath: "translateNowKey", options: .new, context: nil)
         UserDefaults.standard.addObserver(self, forKeyPath: "translateNowModifier", options: .new, context: nil)
+        UserDefaults.standard.addObserver(self, forKeyPath: "translateNowEnabled", options: .new, context: nil)
         UserDefaults.standard.addObserver(self, forKeyPath: "menuBarIcon", options: .new, context: nil)
     }
 
     deinit {
         UserDefaults.standard.removeObserver(self, forKeyPath: "showHideKey")
         UserDefaults.standard.removeObserver(self, forKeyPath: "showHideModifier")
+        UserDefaults.standard.removeObserver(self, forKeyPath: "showHideEnabled")
         UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowKey")
         UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowModifier")
+        UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowEnabled")
         UserDefaults.standard.removeObserver(self, forKeyPath: "menuBarIcon")
         clipboardWatcherTimer?.invalidate()
     }
 
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "showHideKey" || keyPath == "showHideModifier" {
+        if keyPath == "showHideKey" || keyPath == "showHideModifier" || keyPath == "showHideEnabled" {
             setupToggleAppHotkeys()
-        } else if keyPath == "translateNowKey" || keyPath == "translateNowModifier" {
+        } else if keyPath == "translateNowKey" || keyPath == "translateNowModifier" || keyPath == "translateNowEnabled" {
             setupTranslateNowHotkey()
         } else if keyPath == "menuBarIcon" {
             updateMenuBarIcon()
@@ -391,6 +397,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func setupToggleAppHotkeys() {
+        hotkeyToggleApp = nil  // Disable previous hotkey
+
+        guard showHideEnabled else { return }  // Only register if enabled
+
         let key = Key(string: showHideKey) ?? DefaultSettings.ToggleApp.key
         let mod = Key(string: showHideModifier) ?? DefaultSettings.ToggleApp.modifier
 
@@ -402,6 +412,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func setupTranslateNowHotkey() {
+        hotkeyTranslateNow = nil  // Disable previous hotkey
+
+        guard translateNowEnabled else { return }  // Only register if enabled
+
         let key = Key(string: translateNowKey) ?? DefaultSettings.TranslateNow.key
         let mod = Key(string: translateNowModifier) ?? DefaultSettings.TranslateNow.modifier
 
@@ -416,8 +430,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func updateMenuBarIcon() {
         if let button = self.statusBarItem.button {
-            button.image = NSImage(named: menuBarIcon.id)
+            button.image = makeMenuBarImage(named: menuBarIcon.id)
         }
+    }
+
+    private func makeMenuBarImage(named name: String) -> NSImage? {
+        guard let source = NSImage(named: name) else { return nil }
+
+        // Draw at a larger, consistent size so custom PNG icons do not look too small.
+        let targetSize = NSSize(width: 20, height: 20)
+        let rendered = NSImage(size: targetSize)
+        rendered.lockFocus()
+        source.draw(
+            in: NSRect(origin: .zero, size: targetSize),
+            from: NSRect(origin: .zero, size: source.size),
+            operation: .sourceOver,
+            fraction: 1.0
+        )
+        rendered.unlockFocus()
+
+        return rendered
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -439,7 +471,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
         if let button = self.statusBarItem.button {
-            button.image = NSImage(named: menuBarIcon.id)
+            button.image = makeMenuBarImage(named: menuBarIcon.id)
             button.action = #selector(togglePopover(_:))
         }
 
