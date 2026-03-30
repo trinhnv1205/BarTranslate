@@ -46,6 +46,15 @@ struct TopView: View {
                     }
                 }
                 NavTabButton(
+                    icon: "rectangle.stack",
+                    label: "Flashcards",
+                    isActive: contentViewState.currentView == .flashcards
+                ) {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        contentViewState.currentView = .flashcards
+                    }
+                }
+                NavTabButton(
                     icon: "gearshape",
                     label: "Settings",
                     isActive: contentViewState.currentView == .settings

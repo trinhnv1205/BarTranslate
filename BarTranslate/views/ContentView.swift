@@ -11,6 +11,7 @@ import SwiftUI
 enum CurrentContentView {
     case translate
     case history
+    case flashcards
     case settings
 }
 
@@ -34,8 +35,13 @@ struct ContentView: View {
                     .allowsHitTesting(BT.currentView == .history)
                     .opacity(BT.currentView == .history ? 1 : 0)
 
+                FlashcardView(BT: BT)
+                    .zIndex(BT.currentView == .flashcards ? 3 : 0)
+                    .allowsHitTesting(BT.currentView == .flashcards)
+                    .opacity(BT.currentView == .flashcards ? 1 : 0)
+
                 SettingsView()
-                    .zIndex(BT.currentView == .settings ? 3 : 0)
+                    .zIndex(BT.currentView == .settings ? 4 : 0)
                     .allowsHitTesting(BT.currentView == .settings)
                     .opacity(BT.currentView == .settings ? 1 : 0)
             }

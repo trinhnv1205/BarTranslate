@@ -100,6 +100,70 @@ class BarTranslate: ObservableObject {
         return langs.sorted()
     }
 
+    func flashcardDeck(query: String, dueOnly: Bool) -> [TranslationHistoryItem] {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let now = Date()
+
+        return history
+            .filter { $0.isInFlashcardDeck }
+            .filter { item in
+                guard dueOnly else { return true }
+                guard let nextReviewAt = item.nextReviewAt else { return true }
+                return nextReviewAt <= now
+            }
+            .filter { item in
+                guard !trimmedQuery.isEmpty else { return true }
+                return item.sourceText.lowercased().contains(trimmedQuery)
+                    || item.resultText.lowercased().contains(trimmedQuery)
+                    || item.sourceLang.lowercased().contains(trimmedQuery)
+                    || item.targetLang.lowercased().contains(trimmedQuery)
+            }
+            .sorted {
+                let lhs = $0.nextReviewAt ?? .distantPast
+                let rhs = $1.nextReviewAt ?? .distantPast
+                if lhs != rhs { return lhs < rhs }
+                return $0.createdAt > $1.createdAt
+            }
+    }
+
+    func toggleFlashcardDeck(itemID: UUID) {
+        guard let index = history.firstIndex(where: { $0.id == itemID }) else { return }
+        history[index].isInFlashcardDeck.toggle()
+        saveHistory()
+    }
+
+    func recordFlashcardReview(itemID: UUID, remembered: Bool) {
+        guard let index = history.firstIndex(where: { $0.id == itemID }) else { return }
+
+        history[index].reviewCount += 1
+        if remembered {
+            history[index].correctCount += 1
+            history[index].memoryScore = min(history[index].memoryScore + 1, 5)
+        } else {
+            history[index].memoryScore = max(history[index].memoryScore - 1, 0)
+        }
+
+        let now = Date()
+        history[index].lastReviewedAt = now
+        history[index].nextReviewAt = now.addingTimeInterval(nextReviewInterval(for: history[index].memoryScore, remembered: remembered))
+        saveHistory()
+    }
+
+    private func nextReviewInterval(for score: Int, remembered: Bool) -> TimeInterval {
+        if !remembered {
+            return 10 * 60
+        }
+
+        switch score {
+        case 0: return 10 * 60
+        case 1: return 60 * 60
+        case 2: return 12 * 60 * 60
+        case 3: return 24 * 60 * 60
+        case 4: return 3 * 24 * 60 * 60
+        default: return 7 * 24 * 60 * 60
+        }
+    }
+
     func addHistory(sourceText: String, resultText: String, sourceLang: String, targetLang: String) -> Bool {
         let source = sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
         let result = resultText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -201,6 +265,28 @@ struct TranslationHistoryItem: Identifiable, Codable, Equatable {
     var targetLang: String
     var createdAt: Date
     var isFavorite: Bool
+    var isInFlashcardDeck: Bool
+    var reviewCount: Int
+    var correctCount: Int
+    var memoryScore: Int
+    var lastReviewedAt: Date?
+    var nextReviewAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case sourceText
+        case resultText
+        case sourceLang
+        case targetLang
+        case createdAt
+        case isFavorite
+        case isInFlashcardDeck
+        case reviewCount
+        case correctCount
+        case memoryScore
+        case lastReviewedAt
+        case nextReviewAt
+    }
 
     init(
         id: UUID = UUID(),
@@ -209,7 +295,13 @@ struct TranslationHistoryItem: Identifiable, Codable, Equatable {
         sourceLang: String,
         targetLang: String,
         createdAt: Date = Date(),
-        isFavorite: Bool = false
+        isFavorite: Bool = false,
+        isInFlashcardDeck: Bool = true,
+        reviewCount: Int = 0,
+        correctCount: Int = 0,
+        memoryScore: Int = 0,
+        lastReviewedAt: Date? = nil,
+        nextReviewAt: Date? = nil
     ) {
         self.id = id
         self.sourceText = sourceText
@@ -218,6 +310,29 @@ struct TranslationHistoryItem: Identifiable, Codable, Equatable {
         self.targetLang = targetLang
         self.createdAt = createdAt
         self.isFavorite = isFavorite
+        self.isInFlashcardDeck = isInFlashcardDeck
+        self.reviewCount = reviewCount
+        self.correctCount = correctCount
+        self.memoryScore = memoryScore
+        self.lastReviewedAt = lastReviewedAt
+        self.nextReviewAt = nextReviewAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        sourceText = try container.decode(String.self, forKey: .sourceText)
+        resultText = try container.decode(String.self, forKey: .resultText)
+        sourceLang = try container.decode(String.self, forKey: .sourceLang)
+        targetLang = try container.decode(String.self, forKey: .targetLang)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        isInFlashcardDeck = try container.decodeIfPresent(Bool.self, forKey: .isInFlashcardDeck) ?? true
+        reviewCount = try container.decodeIfPresent(Int.self, forKey: .reviewCount) ?? 0
+        correctCount = try container.decodeIfPresent(Int.self, forKey: .correctCount) ?? 0
+        memoryScore = try container.decodeIfPresent(Int.self, forKey: .memoryScore) ?? 0
+        lastReviewedAt = try container.decodeIfPresent(Date.self, forKey: .lastReviewedAt)
+        nextReviewAt = try container.decodeIfPresent(Date.self, forKey: .nextReviewAt)
     }
 }
 
