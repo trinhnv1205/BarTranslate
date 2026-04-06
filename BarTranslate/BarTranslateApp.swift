@@ -79,7 +79,7 @@ class BarTranslate: ObservableObject {
     }
 
     func filteredHistory(query: String, languageFilter: String) -> [TranslationHistoryItem] {
-        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         return sortedHistory.filter { item in
             let matchesLanguage = languageFilter == "all"
                 || item.sourceLang == languageFilter
@@ -87,11 +87,10 @@ class BarTranslate: ObservableObject {
             guard matchesLanguage else { return false }
 
             guard !trimmedQuery.isEmpty else { return true }
-            let q = trimmedQuery.lowercased()
-            return item.sourceText.lowercased().contains(q)
-                || item.resultText.lowercased().contains(q)
-                || item.sourceLang.lowercased().contains(q)
-                || item.targetLang.lowercased().contains(q)
+            return item.sourceText.lowercased().contains(trimmedQuery)
+                || item.resultText.lowercased().contains(trimmedQuery)
+                || item.sourceLang.lowercased().contains(trimmedQuery)
+                || item.targetLang.lowercased().contains(trimmedQuery)
         }
     }
 
@@ -373,6 +372,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.addObserver(self, forKeyPath: "translateNowModifier", options: .new, context: nil)
         UserDefaults.standard.addObserver(self, forKeyPath: "translateNowEnabled", options: .new, context: nil)
         UserDefaults.standard.addObserver(self, forKeyPath: "menuBarIcon", options: .new, context: nil)
+        UserDefaults.standard.addObserver(self, forKeyPath: "autoClipboardTranslate", options: .new, context: nil)
     }
 
     deinit {
@@ -383,6 +383,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowModifier")
         UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowEnabled")
         UserDefaults.standard.removeObserver(self, forKeyPath: "menuBarIcon")
+        UserDefaults.standard.removeObserver(self, forKeyPath: "autoClipboardTranslate")
         clipboardWatcherTimer?.invalidate()
     }
 
@@ -393,6 +394,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             setupTranslateNowHotkey()
         } else if keyPath == "menuBarIcon" {
             updateMenuBarIcon()
+        } else if keyPath == "autoClipboardTranslate" {
+            startClipboardWatcher() // This function handles enabling/disabling the timer
         }
     }
 
@@ -521,6 +524,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func startClipboardWatcher() {
         clipboardWatcherTimer?.invalidate()
+        clipboardWatcherTimer = nil
+        
+        guard autoClipboardTranslate else { return }
+        
         lastPasteboardChangeCount = NSPasteboard.general.changeCount
         lastClipboardText = NSPasteboard.general.string(forType: .string) ?? ""
 
@@ -530,6 +537,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleClipboardChange() {
+        // No need to check guard autoClipboardTranslate since timer stops and is invalidated when false 
+        // Just in case check it anyway
         guard autoClipboardTranslate else { return }
 
         let pb = NSPasteboard.general

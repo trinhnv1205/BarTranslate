@@ -152,25 +152,39 @@ func injectResultObserverScript(webView: WKWebView) {
         if (window.__btResultObserver) return;
         window.__btResultObserver = true;
 
-        function check() {
+        var timeout = null;
+        var lastHasResult = false;
+
+        function performCheck() {
             var selectors = [
                 '[data-result-index="0"]',
                 'span[jsname="W297wb"]',
                 '.lRu31', '.ryNqvb'
             ];
+            var objFound = false;
             for (var sel of selectors) {
                 var el = document.querySelector(sel);
                 if (el && el.innerText.trim().length > 0) {
-                    try { window.webkit.messageHandlers.resultAvailable.postMessage(true); } catch(e) {}
-                    return;
+                    objFound = true;
+                    break;
                 }
             }
-            try { window.webkit.messageHandlers.resultAvailable.postMessage(false); } catch(e) {}
+            if (objFound !== lastHasResult) {
+                lastHasResult = objFound;
+                try { window.webkit.messageHandlers.resultAvailable.postMessage(objFound); } catch(e) {}
+            }
+        }
+
+        function check() {
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(performCheck, 250);
         }
 
         var observer = new MutationObserver(check);
         observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-        check();
+        
+        lastHasResult = true; // force first check to evaluate properly
+        performCheck();
     })();
     """
     webView.evaluateJavaScript(js) { _, error in
@@ -188,12 +202,31 @@ func injectLanguageTrackerScript(webView: WKWebView) {
         window.__btLangTracker = true;
 
         var lastHref = location.href;
-        setInterval(function() {
+        
+        function report() {
             if (location.href !== lastHref) {
                 lastHref = location.href;
                 try { window.webkit.messageHandlers.urlChanged.postMessage(location.href); } catch(e) {}
             }
-        }, 800);
+        }
+
+        var _pushState = history.pushState;
+        history.pushState = function() {
+            _pushState.apply(history, arguments);
+            report();
+        };
+
+        var _replaceState = history.replaceState;
+        history.replaceState = function() {
+            _replaceState.apply(history, arguments);
+            report();
+        };
+
+        window.addEventListener('popstate', report);
+
+        // Fallback slow poll just in case
+        setInterval(report, 2500);
+
         // Report initial URL
         try { window.webkit.messageHandlers.urlChanged.postMessage(location.href); } catch(e) {}
     })();

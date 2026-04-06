@@ -31,26 +31,26 @@ private func encodeStringTo64(fromString: String) -> String? {
 
 private func inject(webView: WKWebView, css: String, provider: TranslationProvider) {
   let javascript = """
-    javascript:(function() {
+    (function() {
       var existing = document.getElementById('BarTranslate-css');
       if (existing) { existing.remove() }
 
       var style = document.createElement('style');
       style.id = 'BarTranslate-css';
       style.type = 'text/css';
-      style.innerHTML = window.atob('\(encodeStringTo64(fromString: css)!)');
+      style.innerHTML = window.atob('\(encodeStringTo64(fromString: css) ?? "")');
     
       var parent = document.getElementsByTagName('head').item(0);
-      parent.appendChild(style)
+      if (parent) { parent.appendChild(style); }
     })()
   """
-  
-  // DELETE CACHE
-  WKWebsiteDataStore.default().removeData(ofTypes: [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache], modifiedSince: Date(timeIntervalSince1970: 0), completionHandler:{ })
     
   webView.configuration.userContentController.addUserScript(
     WKUserScript(source: javascript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
   )
+  
+  // Also evaluate immediately in case the document is already loaded
+  webView.evaluateJavaScript(javascript, completionHandler: nil)
 }
 
 private func fallbackCSS(provider: TranslationProvider) -> String {
@@ -59,36 +59,32 @@ private func fallbackCSS(provider: TranslationProvider) -> String {
 
 // Injects CSS into the translation webview, such that redundant elements are hidden.
 func injectCSS(webView: WKWebView, provider: TranslationProvider) {
-  let sem = DispatchSemaphore.init(value: 0)
-  
   // Links to the CSS that has to be injected for Google translate
   let gistGoogle = "https://gist.github.com/ThijmenDam/6d8727f27ff1a1c5397682d866ffae9b/raw/css-injection-google.css"
-  
   let gistURL = URL(string: gistGoogle)!
   
-  var css: String?
+  // 1. Synchronously inject the local fallback CSS immediately to prevent FOUC (Flash of Unstyled Content)
+  let localCSS = fallbackCSS(provider: provider)
+  inject(webView: webView, css: localCSS, provider: provider)
   
-  // This task fetches the to-be-injected CSS from a GitHub Gist
-  let task = URLSession.shared.dataTask(with: gistURL) { data, response, error in defer { sem.signal() }
+  // 2. Asynchronously fetch the latest CSS update without blocking the main thread
+  let task = URLSession.shared.dataTask(with: gistURL) { data, response, error in 
     if let error = error {
       print("[WARNING] Failed to retrieve GitHub Gist. Reason: \(error)")
     } else if let data = data, let response = response as? HTTPURLResponse {
       if response.statusCode == 200 {
-        print("Successfully fetched GitHub Gist.")
-        css = String(data: data, encoding: .utf8)!
+        if let fetchedCSS = String(data: data, encoding: .utf8) {
+            DispatchQueue.main.async {
+                inject(webView: webView, css: fetchedCSS, provider: provider)
+                print("Injected remote CSS for \(provider)")
+            }
+        }
       } else {
         print("[WARNING] Failed to retrieve GitHub Gist. Reason: HTTP \(response.statusCode)")
       }
     }
   }
-  
-  task.resume() // Perform async task
-  sem.wait()    // Wait until the semaphore has been signaled from other thread, which will be once the async task has completed
-  
-  let cssToInject = css ?? fallbackCSS(provider: provider)
-  
-  inject(webView: webView, css: cssToInject, provider: provider)
-  print("Injected CSS for \(provider)")
+  task.resume() 
 }
 
 
