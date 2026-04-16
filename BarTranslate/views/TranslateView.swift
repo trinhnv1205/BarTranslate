@@ -47,8 +47,14 @@ struct TranslateView: View {
                         // Character counter – bottom left
                         CharCounterBadge(count: BT.characterCount)
                         Spacer()
-                        // Copy button – bottom right
-                        CopyResultButton(BT: BT, provider: translationProvider)
+                        HStack(spacing: 6) {
+                            // Swap languages button
+                            SwapLanguagesButton(BT: BT)
+                            // TTS button
+                            SpeakResultButton(BT: BT)
+                            // Copy button – bottom right
+                            CopyResultButton(BT: BT, provider: translationProvider)
+                        }
                     }
                     .padding(.horizontal, 10)
                     .padding(.bottom, 10)
@@ -134,6 +140,74 @@ struct CopyResultButton: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation { BT.justCopied = false }
             }
+        }
+    }
+}
+
+// MARK: - Swap Languages Button
+
+struct SwapLanguagesButton: View {
+    @ObservedObject var BT: BarTranslate
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: { BT.swapLanguages() }) {
+            Image(systemName: "arrow.left.arrow.right")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(isHovered ? .primary : .secondary)
+                .frame(width: 30, height: 26)
+                .background(.ultraThinMaterial)
+                .cornerRadius(7)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 7)
+                        .stroke(Color(NSColor.separatorColor).opacity(isHovered ? 0.6 : 0.3), lineWidth: 0.5)
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { isHovered = $0 }
+        .help("Swap languages")
+        .opacity(BT.lastSourceLang == "auto" ? 0.4 : 1)
+        .disabled(BT.lastSourceLang == "auto")
+    }
+}
+
+// MARK: - Speak Result Button
+
+struct SpeakResultButton: View {
+    @ObservedObject var BT: BarTranslate
+    @State private var isHovered = false
+
+    var body: some View {
+        if BT.hasResult {
+            Button(action: speakResult) {
+                Image(systemName: BT.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(BT.isSpeaking ? Color(NSColor.systemBlue) : (isHovered ? .primary : .secondary))
+                    .frame(width: 30, height: 26)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(7)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7)
+                            .stroke(
+                                BT.isSpeaking
+                                    ? Color(NSColor.systemBlue).opacity(0.4)
+                                    : Color(NSColor.separatorColor).opacity(isHovered ? 0.6 : 0.3),
+                                lineWidth: 0.5
+                            )
+                    )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .onHover { isHovered = $0 }
+            .help(BT.isSpeaking ? "Stop speaking" : "Speak translation")
+            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+        }
+    }
+
+    private func speakResult() {
+        guard let webView = BT.webView else { return }
+        readTranslationResult(from: webView) { text in
+            guard let text, !text.isEmpty else { return }
+            BT.speak(text: text, language: BT.lastTargetLang)
         }
     }
 }

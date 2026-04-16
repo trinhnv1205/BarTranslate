@@ -52,14 +52,23 @@ struct HistoryView: View {
                 }
             }
 
-            if BT.history.contains(where: { !$0.isFavorite }) {
+            if !BT.history.isEmpty {
                 HStack {
-                    Spacer()
-                    Button("Clear non-favorites") {
-                        BT.clearNonFavoriteHistory()
+                    Button("Export CSV") {
+                        BT.exportHistoryCSV()
                     }
                     .buttonStyle(.link)
                     .font(.system(size: 11))
+
+                    Spacer()
+
+                    if BT.history.contains(where: { !$0.isFavorite }) {
+                        Button("Clear non-favorites") {
+                            BT.clearNonFavoriteHistory()
+                        }
+                        .buttonStyle(.link)
+                        .font(.system(size: 11))
+                    }
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 8)
@@ -107,6 +116,12 @@ private struct HistoryRow: View {
                     BT.toggleFlashcardDeck(itemID: item.id)
                 } label: {
                     Label(item.isInFlashcardDeck ? "In deck" : "Add deck", systemImage: item.isInFlashcardDeck ? "rectangle.stack.fill" : "rectangle.stack.badge.plus")
+                }
+
+                Button {
+                    BT.speak(text: item.resultText, language: item.targetLang)
+                } label: {
+                    Label("Speak", systemImage: "speaker.wave.2")
                 }
 
                 Button {

@@ -10,6 +10,7 @@ import SwiftUI
 import HotKey
 import WebKit
 import Carbon.HIToolbox
+import AVFoundation
 
 @main
 struct BarTranslateApp: App {
@@ -36,9 +37,11 @@ class BarTranslate: ObservableObject {
     @Published var hasResult: Bool = false
     @Published var justCopied: Bool = false
     @Published var history: [TranslationHistoryItem] = []
+    @Published var isSpeaking: Bool = false
 
     var webView: WKWebView?
     private var lastHistoryFingerprint: String?
+    private let synthesizer = AVSpeechSynthesizer()
 
     private let historyStorageKey = "translationHistory"
 
@@ -232,6 +235,83 @@ class BarTranslate: ObservableObject {
         let encoder = JSONEncoder()
         guard let data = try? encoder.encode(history) else { return }
         UserDefaults.standard.set(data, forKey: historyStorageKey)
+    }
+
+    // MARK: - Text-to-Speech
+
+    func speak(text: String, language: String) {
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+            isSpeaking = false
+            return
+        }
+
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: mapLanguageCode(language))
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        isSpeaking = true
+        synthesizer.speak(utterance)
+
+        // Auto-reset state when done
+        DispatchQueue.global().async { [weak self] in
+            while self?.synthesizer.isSpeaking == true {
+                Thread.sleep(forTimeInterval: 0.2)
+            }
+            DispatchQueue.main.async { self?.isSpeaking = false }
+        }
+    }
+
+    private func mapLanguageCode(_ code: String) -> String {
+        let map: [String: String] = [
+            "vi": "vi-VN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR",
+            "zh-CN": "zh-CN", "zh-TW": "zh-TW", "fr": "fr-FR", "de": "de-DE",
+            "es": "es-ES", "pt": "pt-BR", "ru": "ru-RU", "th": "th-TH",
+            "id": "id-ID", "it": "it-IT", "ar": "ar-SA", "hi": "hi-IN",
+        ]
+        return map[code] ?? code
+    }
+
+    // MARK: - Swap Languages
+
+    func swapLanguages() {
+        guard lastSourceLang != "auto" else { return }
+        let oldSource = lastSourceLang
+        let oldTarget = lastTargetLang
+        lastSourceLang = oldTarget
+        lastTargetLang = oldSource
+
+        guard let webView = webView else { return }
+        let urlString = "https://translate.google.com/?sl=\(lastSourceLang)&tl=\(lastTargetLang)&op=translate"
+        if let url = URL(string: urlString) {
+            webView.load(URLRequest(url: url))
+            injectCSS(webView: webView, provider: .google)
+        }
+    }
+
+    // MARK: - Export History
+
+    func exportHistoryCSV() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.commaSeparatedText]
+        panel.nameFieldStringValue = "BarTranslate_History_\(dateStampForExport()).csv"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        var csv = "Source Language,Target Language,Source Text,Result Text,Created At,Is Favorite\n"
+        let formatter = ISO8601DateFormatter()
+        for item in sortedHistory {
+            let src = item.sourceText.escapingCSV()
+            let res = item.resultText.escapingCSV()
+            let date = formatter.string(from: item.createdAt)
+            csv += "\(item.sourceLang),\(item.targetLang),\(src),\(res),\(date),\(item.isFavorite)\n"
+        }
+        try? csv.write(to: url, atomically: true, encoding: .utf8)
+    }
+
+    private func dateStampForExport() -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyyMMdd"
+        return f.string(from: Date())
     }
 
     func captureAndStoreCurrentTranslation(completion: ((TranslationHistoryItem?) -> Void)? = nil) {
@@ -591,5 +671,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             keyDown?.post(tap: .cgAnnotatedSessionEventTap)
             keyUp?.post(tap: .cgAnnotatedSessionEventTap)
         }
+    }
+}
+
+// MARK: - String CSV Helper
+
+extension String {
+    func escapingCSV() -> String {
+        let needsQuoting = contains(",") || contains("\"") || contains("\n") || contains("\r")
+        if needsQuoting {
+            return "\"" + replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return self
     }
 }
