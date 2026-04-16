@@ -325,6 +325,10 @@ struct WebView: NSViewRepresentable {
                     injectResultObserverScript(webView: webView)
                     injectLanguageTrackerScript(webView: webView)
                     injectSourceBlurScript(webView: webView)
+
+                    // Apply web appearance setting
+                    let appearance = WebAppearance(rawValue: UserDefaults.standard.string(forKey: "webAppearance") ?? "system") ?? .system
+                    injectAppearanceCSS(webView: webView, appearance: appearance)
                 }
             }
         }

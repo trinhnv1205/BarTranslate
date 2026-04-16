@@ -25,6 +25,7 @@ struct TopView: View {
                 NavTabButton(
                     icon: "text.bubble",
                     label: "Translate",
+                    shortcut: "1",
                     isActive: contentViewState.currentView == .translate
                 ) {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -34,6 +35,7 @@ struct TopView: View {
                 NavTabButton(
                     icon: "clock.arrow.circlepath",
                     label: "History",
+                    shortcut: "2",
                     isActive: contentViewState.currentView == .history
                 ) {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -43,6 +45,7 @@ struct TopView: View {
                 NavTabButton(
                     icon: "rectangle.stack",
                     label: "Flashcards",
+                    shortcut: "3",
                     isActive: contentViewState.currentView == .flashcards
                 ) {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -52,6 +55,7 @@ struct TopView: View {
                 NavTabButton(
                     icon: "gearshape",
                     label: "Settings",
+                    shortcut: ",",
                     isActive: contentViewState.currentView == .settings
                 ) {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -88,6 +92,7 @@ struct TopView: View {
 struct NavTabButton: View {
     let icon: String
     let label: String
+    var shortcut: String = ""
     let isActive: Bool
     let action: () -> Void
     @State private var isHovered = false
@@ -108,9 +113,9 @@ struct NavTabButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { isHovered = $0 }
-        .help(label)
+        .help("\(label) (\u{2318}\(shortcut))")
         .accessibilityLabel(Text(label))
-        .keyboardShortcut(label == "Settings" ? "," : KeyEquivalent("\0"), modifiers: [])
+        .keyboardShortcut(KeyEquivalent(Character(shortcut)), modifiers: .command)
     }
 }
 

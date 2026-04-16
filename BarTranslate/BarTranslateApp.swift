@@ -11,6 +11,7 @@ import HotKey
 import WebKit
 import Carbon.HIToolbox
 import AVFoundation
+import ServiceManagement
 
 @main
 struct BarTranslateApp: App {
@@ -442,28 +443,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @AppStorage("autoClipboardPaste") private var autoClipboardPaste: Bool = DefaultSettings.autoClipboardPaste
     @AppStorage("autoClipboardTranslate") private var autoClipboardTranslate: Bool = DefaultSettings.autoClipboardTranslate
     @AppStorage("inPlaceAction") private var inPlaceActionRaw: String = DefaultSettings.inPlaceAction.rawValue
+    @AppStorage("pinPopover") private var pinPopover: Bool = DefaultSettings.pinPopover
+    @AppStorage("webAppearance") private var webAppearance: WebAppearance = DefaultSettings.webAppearance
 
     override init() {
         super.init()
-        UserDefaults.standard.addObserver(self, forKeyPath: "showHideKey", options: .new, context: nil)
-        UserDefaults.standard.addObserver(self, forKeyPath: "showHideModifier", options: .new, context: nil)
-        UserDefaults.standard.addObserver(self, forKeyPath: "showHideEnabled", options: .new, context: nil)
-        UserDefaults.standard.addObserver(self, forKeyPath: "translateNowKey", options: .new, context: nil)
-        UserDefaults.standard.addObserver(self, forKeyPath: "translateNowModifier", options: .new, context: nil)
-        UserDefaults.standard.addObserver(self, forKeyPath: "translateNowEnabled", options: .new, context: nil)
-        UserDefaults.standard.addObserver(self, forKeyPath: "menuBarIcon", options: .new, context: nil)
-        UserDefaults.standard.addObserver(self, forKeyPath: "autoClipboardTranslate", options: .new, context: nil)
+        let observedKeys = [
+            "showHideKey", "showHideModifier", "showHideEnabled",
+            "translateNowKey", "translateNowModifier", "translateNowEnabled",
+            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance"
+        ]
+        for key in observedKeys {
+            UserDefaults.standard.addObserver(self, forKeyPath: key, options: .new, context: nil)
+        }
     }
 
     deinit {
-        UserDefaults.standard.removeObserver(self, forKeyPath: "showHideKey")
-        UserDefaults.standard.removeObserver(self, forKeyPath: "showHideModifier")
-        UserDefaults.standard.removeObserver(self, forKeyPath: "showHideEnabled")
-        UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowKey")
-        UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowModifier")
-        UserDefaults.standard.removeObserver(self, forKeyPath: "translateNowEnabled")
-        UserDefaults.standard.removeObserver(self, forKeyPath: "menuBarIcon")
-        UserDefaults.standard.removeObserver(self, forKeyPath: "autoClipboardTranslate")
+        let observedKeys = [
+            "showHideKey", "showHideModifier", "showHideEnabled",
+            "translateNowKey", "translateNowModifier", "translateNowEnabled",
+            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance"
+        ]
+        for key in observedKeys {
+            UserDefaults.standard.removeObserver(self, forKeyPath: key)
+        }
         clipboardWatcherTimer?.invalidate()
     }
 
@@ -475,7 +478,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else if keyPath == "menuBarIcon" {
             updateMenuBarIcon()
         } else if keyPath == "autoClipboardTranslate" {
-            startClipboardWatcher() // This function handles enabling/disabling the timer
+            startClipboardWatcher()
+        } else if keyPath == "pinPopover" {
+            updatePopoverBehavior()
+        } else if keyPath == "webAppearance" {
+            applyWebAppearance()
         }
     }
 
@@ -517,6 +524,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func updatePopoverBehavior() {
+        guard let popover = self.popover else { return }
+        #if DEBUG
+        popover.behavior = .applicationDefined
+        #else
+        popover.behavior = pinPopover ? .applicationDefined : .transient
+        #endif
+    }
+
+    func applyWebAppearance() {
+        guard let webView = BT.webView else { return }
+        injectAppearanceCSS(webView: webView, appearance: webAppearance)
+    }
+
     private func makeMenuBarImage(named name: String) -> NSImage? {
         guard let source = NSImage(named: name) else { return nil }
 
@@ -544,7 +565,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let popover = NSPopover()
         popover.contentSize = NSSize(width: Constants.AppSize.width, height: Constants.AppSize.height)
-        popover.behavior = .transient
+        popover.behavior = pinPopover ? .applicationDefined : .transient
         popover.contentViewController = NSHostingController(rootView: contentView)
         self.popover = popover
 

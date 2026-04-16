@@ -5,9 +5,14 @@ struct HistoryView: View {
     @ObservedObject var BT: BarTranslate
     @State private var searchQuery: String = ""
     @State private var languageFilter: String = "all"
+    @State private var favoritesOnly: Bool = false
 
     private var filteredItems: [TranslationHistoryItem] {
-        BT.filteredHistory(query: searchQuery, languageFilter: languageFilter)
+        let items = BT.filteredHistory(query: searchQuery, languageFilter: languageFilter)
+        if favoritesOnly {
+            return items.filter { $0.isFavorite }
+        }
+        return items
     }
 
     var body: some View {
@@ -24,6 +29,16 @@ struct HistoryView: View {
                 }
                 .pickerStyle(.menu)
                 .frame(width: 90)
+
+                Button {
+                    favoritesOnly.toggle()
+                } label: {
+                    Image(systemName: favoritesOnly ? "pin.fill" : "pin")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(favoritesOnly ? Color(NSColor.systemOrange) : .secondary)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .help(favoritesOnly ? "Show all" : "Show favorites only")
             }
             .padding(.horizontal, 12)
             .padding(.top, 10)

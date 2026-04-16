@@ -9,6 +9,7 @@
 import SwiftUI
 import Foundation
 import HotKey
+import ServiceManagement
 
 struct SettingsView: View {
 
@@ -23,6 +24,9 @@ struct SettingsView: View {
     @AppStorage("autoClipboardTranslate") private var autoClipboardTranslate: Bool = DefaultSettings.autoClipboardTranslate
     @AppStorage("historyLimit") private var historyLimit: Int = DefaultSettings.historyLimit
     @AppStorage("inPlaceAction") private var inPlaceActionRaw: String = DefaultSettings.inPlaceAction.rawValue
+    @AppStorage("launchAtLogin") private var launchAtLogin: Bool = DefaultSettings.launchAtLogin
+    @AppStorage("pinPopover") private var pinPopover: Bool = DefaultSettings.pinPopover
+    @AppStorage("webAppearance") private var webAppearance: WebAppearance = DefaultSettings.webAppearance
 
     private let historyOptions: [Int] = [50, 100, 150, 200]
     private var inPlaceAction: Binding<InPlaceAction> {
@@ -158,6 +162,38 @@ struct SettingsView: View {
                     }
                 }
 
+                // Appearance
+                SettingsSection(title: "Appearance") {
+                    SettingsRow(label: "Web theme") {
+                        Picker("", selection: $webAppearance) {
+                            Text("System").tag(WebAppearance.system)
+                            Text("Light").tag(WebAppearance.light)
+                            Text("Dark").tag(WebAppearance.dark)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 120)
+                    }
+                    SettingsRow(label: "Pin popover") {
+                        Toggle("", isOn: $pinPopover)
+                            .labelsHidden()
+                    }
+                }
+
+                // General
+                SettingsSection(title: "General") {
+                    SettingsRow(label: "Launch at login") {
+                        Toggle("", isOn: Binding(
+                            get: { launchAtLogin },
+                            set: { newValue in
+                                launchAtLogin = newValue
+                                setLaunchAtLogin(enabled: newValue)
+                            }
+                        ))
+                        .labelsHidden()
+                    }
+                }
+
                 // About
                 SettingsSection(title: "About") {
                     SettingsRow(label: "Version") {
@@ -275,6 +311,22 @@ struct SettingsRow<Trailing: View>: View {
                         .stroke(Color(NSColor.separatorColor).opacity(0.35), lineWidth: 0.5)
                 )
         )
+    }
+}
+
+// MARK: - Launch at Login Helper
+
+private func setLaunchAtLogin(enabled: Bool) {
+    if #available(macOS 13.0, *) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            print("[LaunchAtLogin] Error: \(error)")
+        }
     }
 }
 

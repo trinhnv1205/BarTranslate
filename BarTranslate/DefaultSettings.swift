@@ -28,6 +28,14 @@ enum MenuBarIcon: String, CaseIterable, Identifiable {
   var id: String { self.rawValue }
 }
 
+enum WebAppearance: String, CaseIterable, Identifiable {
+  case system
+  case light
+  case dark
+
+  var id: String { self.rawValue }
+}
+
 struct DefaultSettings {
 
   static let translationProvider = TranslationProvider.google
@@ -47,5 +55,8 @@ struct DefaultSettings {
   static let autoClipboardPaste = false
   static let historyLimit = 100
   static let inPlaceAction = InPlaceAction.none
+  static let launchAtLogin = false
+  static let pinPopover = false
+  static let webAppearance = WebAppearance.system
 
 }

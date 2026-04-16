@@ -260,6 +260,56 @@ func injectSourceBlurScript(webView: WKWebView) {
     }
 }
 
+// MARK: - 6. Web Appearance (Dark/Light Mode)
+
+/// Injects CSS to force dark or light mode on Google Translate
+func injectAppearanceCSS(webView: WKWebView, appearance: WebAppearance) {
+    let css: String
+    switch appearance {
+    case .dark:
+        css = """
+        html { filter: invert(1) hue-rotate(180deg) !important; }
+        img, video, svg { filter: invert(1) hue-rotate(180deg) !important; }
+        """
+    case .light:
+        css = """
+        @media (prefers-color-scheme: dark) {
+            html { color-scheme: light !important; }
+        }
+        """
+    case .system:
+        css = ""
+    }
+
+    let js: String
+    if css.isEmpty {
+        js = """
+        (function() {
+            var el = document.getElementById('bt-appearance-css');
+            if (el) el.remove();
+        })();
+        """
+    } else {
+        let escapedCSS = css.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\n", with: " ")
+        js = """
+        (function() {
+            var el = document.getElementById('bt-appearance-css');
+            if (!el) {
+                el = document.createElement('style');
+                el.id = 'bt-appearance-css';
+                document.head.appendChild(el);
+            }
+            el.textContent = '\(escapedCSS)';
+        })();
+        """
+    }
+    webView.evaluateJavaScript(js) { _, error in
+        if let error = error { print("[Appearance] Error: \(error)") }
+    }
+}
+
 /// Parses sl/tl from a Google Translate URL string
 func parseLanguageParams(from urlString: String) -> (source: String?, target: String?) {
     guard let url = URL(string: urlString),
