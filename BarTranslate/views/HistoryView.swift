@@ -120,37 +120,42 @@ private struct HistoryRow: View {
                 .foregroundColor(.primary)
                 .lineLimit(3)
 
-            HStack(spacing: 10) {
+            HStack(spacing: 6) {
                 Button {
                     BT.toggleFavorite(itemID: item.id)
                 } label: {
-                    Label(item.isFavorite ? "Pinned" : "Pin", systemImage: item.isFavorite ? "pin.fill" : "pin")
+                    Image(systemName: item.isFavorite ? "pin.fill" : "pin")
                 }
+                .help(item.isFavorite ? "Unpin" : "Pin")
 
                 Button {
                     BT.toggleFlashcardDeck(itemID: item.id)
                 } label: {
-                    Label(item.isInFlashcardDeck ? "In deck" : "Add deck", systemImage: item.isInFlashcardDeck ? "rectangle.stack.fill" : "rectangle.stack.badge.plus")
+                    Image(systemName: item.isInFlashcardDeck ? "rectangle.stack.fill" : "rectangle.stack.badge.plus")
                 }
+                .help(item.isInFlashcardDeck ? "Remove from deck" : "Add to deck")
 
                 Button {
                     BT.speak(text: item.resultText, language: item.targetLang)
                 } label: {
-                    Label("Speak", systemImage: "speaker.wave.2")
+                    Image(systemName: "speaker.wave.2")
                 }
+                .help("Speak")
 
                 Button {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(item.resultText, forType: .string)
                 } label: {
-                    Label("Copy", systemImage: "doc.on.doc")
+                    Image(systemName: "doc.on.doc")
                 }
+                .help("Copy")
 
                 Button {
                     BT.removeHistory(itemID: item.id)
                 } label: {
-                    Label("Delete", systemImage: "trash")
+                    Image(systemName: "trash")
                 }
+                .help("Delete")
 
                 Spacer()
 
@@ -162,11 +167,12 @@ private struct HistoryRow: View {
                         BT.currentView = .translate
                     }
                 } label: {
-                    Label("Reuse", systemImage: "arrow.clockwise")
+                    Image(systemName: "arrow.clockwise")
                 }
+                .help("Reuse")
             }
             .buttonStyle(.link)
-            .font(.system(size: 11))
+            .font(.system(size: 12))
         }
         .padding(10)
         .background(
