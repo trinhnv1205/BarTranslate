@@ -58,5 +58,38 @@ struct DefaultSettings {
   static let launchAtLogin = false
   static let pinPopover = false
   static let webAppearance = WebAppearance.system
+  static let checkForUpdates = true
+  static let iCloudSync = false
 
+  struct SwapLang {
+    static let key = Key.s
+    static let modifier = Key.option
+  }
+
+  struct TranslateClipboard {
+    static let key = Key.t
+    static let modifier = Key.option
+  }
+
+  struct CopyResult {
+    static let key = Key.c
+    static let modifier = Key.option
+  }
+
+}
+
+enum PopoverSize: String, CaseIterable, Identifiable {
+  case compact
+  case normal
+  case wide
+
+  var id: String { self.rawValue }
+
+  var dimensions: (width: CGFloat, height: CGFloat) {
+    switch self {
+    case .compact: return (360, 450)
+    case .normal: return (400, 500)
+    case .wide: return (500, 560)
+    }
+  }
 }

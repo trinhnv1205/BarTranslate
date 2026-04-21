@@ -83,7 +83,7 @@ struct TopView: View {
                 .foregroundColor(Color(NSColor.separatorColor).opacity(0.7)),
             alignment: .bottom
         )
-        .frame(minWidth: Constants.AppSize.width)
+        .frame(maxWidth: .infinity)
     }
 }
 

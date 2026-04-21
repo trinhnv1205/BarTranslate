@@ -1,0 +1,149 @@
+{
+  "" : {
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslate-primary.dia",
+    "emit-module-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslate-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslate-primary-emit-module.dia",
+    "pch" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslate-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslate-primary.swiftdeps"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/BarTranslateApp.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/BarTranslateApp~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/Bundle.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Bundle~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/Constants.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/Constants~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/DefaultSettings.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/DefaultSettings~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/KeysAndModifiers.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/KeysAndModifiers~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/injections/autofocus.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/autofocus~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/injections/features.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/features~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/injections/style.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/style~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/views/ContentView.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/ContentView~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/views/HistoryView.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/HistoryView~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/views/SettingsView.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/views/TopView.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TopView~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/BarTranslate/views/TranslateView.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/TranslateView~partial.swiftmodule"
+  },
+  "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/trinhnv/WebstormProjects/BarTranslate/build/BarTranslate.build/Debug/BarTranslate.build/Objects-normal/x86_64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

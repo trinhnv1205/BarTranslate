@@ -27,6 +27,19 @@ struct SettingsView: View {
     @AppStorage("launchAtLogin") private var launchAtLogin: Bool = DefaultSettings.launchAtLogin
     @AppStorage("pinPopover") private var pinPopover: Bool = DefaultSettings.pinPopover
     @AppStorage("webAppearance") private var webAppearance: WebAppearance = DefaultSettings.webAppearance
+    @AppStorage("popoverSize") private var popoverSize: PopoverSize = .normal
+    @AppStorage("checkForUpdates") private var checkForUpdates: Bool = DefaultSettings.checkForUpdates
+    @AppStorage("iCloudSync") private var iCloudSync: Bool = DefaultSettings.iCloudSync
+
+    @AppStorage("swapLangKey") private var swapLangKey: String = DefaultSettings.SwapLang.key.description
+    @AppStorage("swapLangModifier") private var swapLangModifier: String = DefaultSettings.SwapLang.modifier.description
+    @AppStorage("swapLangEnabled") private var swapLangEnabled: Bool = false
+    @AppStorage("translateClipboardKey") private var translateClipboardKey: String = DefaultSettings.TranslateClipboard.key.description
+    @AppStorage("translateClipboardModifier") private var translateClipboardModifier: String = DefaultSettings.TranslateClipboard.modifier.description
+    @AppStorage("translateClipboardEnabled") private var translateClipboardEnabled: Bool = false
+    @AppStorage("copyResultKey") private var copyResultKey: String = DefaultSettings.CopyResult.key.description
+    @AppStorage("copyResultModifier") private var copyResultModifier: String = DefaultSettings.CopyResult.modifier.description
+    @AppStorage("copyResultEnabled") private var copyResultEnabled: Bool = false
 
     private let historyOptions: [Int] = [50, 100, 150, 200]
     private var inPlaceAction: Binding<InPlaceAction> {
@@ -120,6 +133,105 @@ struct SettingsView: View {
                             .disabled(!translateNowEnabled)
                         }
                     }
+                    SettingsRow(label: "Swap languages") {
+                        HStack(spacing: 6) {
+                            Toggle("", isOn: $swapLangEnabled)
+                                .labelsHidden()
+
+                            Picker("", selection: $swapLangModifier) {
+                                ForEach(modifiers, id: \.self) { modifier in
+                                    Text(modifier.description).tag(modifier.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+                            .opacity(swapLangEnabled ? 1.0 : 0.5)
+                            .disabled(!swapLangEnabled)
+
+                            Text("+")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .opacity(swapLangEnabled ? 1.0 : 0.5)
+
+                            Picker("", selection: $swapLangKey) {
+                                ForEach(keys, id: \.self) { key in
+                                    Text(key.description).tag(key.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+                            .opacity(swapLangEnabled ? 1.0 : 0.5)
+                            .disabled(!swapLangEnabled)
+                        }
+                    }
+                    SettingsRow(label: "Translate clipboard") {
+                        HStack(spacing: 6) {
+                            Toggle("", isOn: $translateClipboardEnabled)
+                                .labelsHidden()
+
+                            Picker("", selection: $translateClipboardModifier) {
+                                ForEach(modifiers, id: \.self) { modifier in
+                                    Text(modifier.description).tag(modifier.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+                            .opacity(translateClipboardEnabled ? 1.0 : 0.5)
+                            .disabled(!translateClipboardEnabled)
+
+                            Text("+")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .opacity(translateClipboardEnabled ? 1.0 : 0.5)
+
+                            Picker("", selection: $translateClipboardKey) {
+                                ForEach(keys, id: \.self) { key in
+                                    Text(key.description).tag(key.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+                            .opacity(translateClipboardEnabled ? 1.0 : 0.5)
+                            .disabled(!translateClipboardEnabled)
+                        }
+                    }
+                    SettingsRow(label: "Copy result") {
+                        HStack(spacing: 6) {
+                            Toggle("", isOn: $copyResultEnabled)
+                                .labelsHidden()
+
+                            Picker("", selection: $copyResultModifier) {
+                                ForEach(modifiers, id: \.self) { modifier in
+                                    Text(modifier.description).tag(modifier.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+                            .opacity(copyResultEnabled ? 1.0 : 0.5)
+                            .disabled(!copyResultEnabled)
+
+                            Text("+")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .opacity(copyResultEnabled ? 1.0 : 0.5)
+
+                            Picker("", selection: $copyResultKey) {
+                                ForEach(keys, id: \.self) { key in
+                                    Text(key.description).tag(key.description)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 60)
+                            .opacity(copyResultEnabled ? 1.0 : 0.5)
+                            .disabled(!copyResultEnabled)
+                        }
+                    }
                 }
 
                 // Clipboard automation
@@ -174,6 +286,16 @@ struct SettingsView: View {
                         .pickerStyle(.menu)
                         .frame(width: 120)
                     }
+                    SettingsRow(label: "Popover size") {
+                        Picker("", selection: $popoverSize) {
+                            Text("Compact").tag(PopoverSize.compact)
+                            Text("Normal").tag(PopoverSize.normal)
+                            Text("Wide").tag(PopoverSize.wide)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 120)
+                    }
                     SettingsRow(label: "Pin popover") {
                         Toggle("", isOn: $pinPopover)
                             .labelsHidden()
@@ -192,6 +314,16 @@ struct SettingsView: View {
                         ))
                         .labelsHidden()
                     }
+                    SettingsRow(label: "iCloud sync") {
+                        Toggle("", isOn: $iCloudSync)
+                            .labelsHidden()
+                    }
+                    #if !APPSTORE
+                    SettingsRow(label: "Check for updates") {
+                        Toggle("", isOn: $checkForUpdates)
+                            .labelsHidden()
+                    }
+                    #endif
                 }
 
                 // About
@@ -203,8 +335,9 @@ struct SettingsView: View {
                     }
                     #if !APPSTORE
                     SettingsRow(label: "Updates") {
-                        Link("Check for updates",
-                             destination: URL(string: "https://github.com/ThijmenDam/BarTranslate/releases")!)
+                        Button("Check now") {
+                            UpdateChecker.shared.checkForUpdates()
+                        }
                         .font(.system(size: 12))
                     }
                     #endif

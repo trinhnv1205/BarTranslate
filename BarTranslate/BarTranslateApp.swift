@@ -236,6 +236,7 @@ class BarTranslate: ObservableObject {
         let encoder = JSONEncoder()
         guard let data = try? encoder.encode(history) else { return }
         UserDefaults.standard.set(data, forKey: historyStorageKey)
+        pushHistoryToICloud()
     }
 
     // MARK: - Text-to-Speech
@@ -335,6 +336,83 @@ class BarTranslate: ObservableObject {
             }
         }
     }
+
+    // MARK: - iCloud Sync
+
+    private var iCloudSyncEnabled = false
+    private var iCloudObserver: NSObjectProtocol?
+
+    func configureICloudSync(enabled: Bool) {
+        iCloudSyncEnabled = enabled
+
+        if let observer = iCloudObserver {
+            NotificationCenter.default.removeObserver(observer)
+            iCloudObserver = nil
+        }
+
+        guard enabled else { return }
+
+        // Push current history to iCloud
+        pushHistoryToICloud()
+
+        // Listen for remote changes
+        iCloudObserver = NotificationCenter.default.addObserver(
+            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: NSUbiquitousKeyValueStore.default,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleICloudChange(notification)
+        }
+
+        NSUbiquitousKeyValueStore.default.synchronize()
+    }
+
+    private func pushHistoryToICloud() {
+        guard iCloudSyncEnabled else { return }
+        let encoder = JSONEncoder()
+        guard let data = try? encoder.encode(history) else { return }
+        NSUbiquitousKeyValueStore.default.set(data, forKey: historyStorageKey)
+    }
+
+    private func handleICloudChange(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reason = userInfo[NSUbiquitousKeyValueStoreChangeReasonKey] as? Int,
+              (reason == NSUbiquitousKeyValueStoreServerChange || reason == NSUbiquitousKeyValueStoreInitialSyncChange) else { return }
+
+        guard let keys = userInfo[NSUbiquitousKeyValueStoreChangedKeysKey] as? [String],
+              keys.contains(historyStorageKey) else { return }
+
+        guard let data = NSUbiquitousKeyValueStore.default.data(forKey: historyStorageKey) else { return }
+        let decoder = JSONDecoder()
+        guard let remoteItems = try? decoder.decode([TranslationHistoryItem].self, from: data) else { return }
+
+        mergeHistory(remote: remoteItems)
+    }
+
+    private func mergeHistory(remote: [TranslationHistoryItem]) {
+        var merged = history
+        for remoteItem in remote {
+            if let localIndex = merged.firstIndex(where: { $0.id == remoteItem.id }) {
+                // Keep the one with more recent data
+                if remoteItem.createdAt > merged[localIndex].createdAt
+                    || remoteItem.reviewCount > merged[localIndex].reviewCount {
+                    merged[localIndex] = remoteItem
+                }
+            } else {
+                merged.append(remoteItem)
+            }
+        }
+
+        // Sort: favorites first, then by date
+        merged.sort {
+            if $0.isFavorite != $1.isFavorite { return $0.isFavorite && !$1.isFavorite }
+            return $0.createdAt > $1.createdAt
+        }
+
+        history = merged
+        enforceHistoryLimit()
+        saveHistory()
+    }
 }
 
 struct TranslationHistoryItem: Identifiable, Codable, Equatable {
@@ -425,6 +503,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusBarItem: NSStatusItem!
     var hotkeyToggleApp: HotKey!
     var hotkeyTranslateNow: HotKey!
+    var hotkeySwapLang: HotKey!
+    var hotkeyTranslateClipboard: HotKey!
+    var hotkeyCopyResult: HotKey!
     var clipboardWatcherTimer: Timer?
     var lastPasteboardChangeCount: Int = NSPasteboard.general.changeCount
     var lastClipboardText: String = ""
@@ -445,13 +526,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @AppStorage("inPlaceAction") private var inPlaceActionRaw: String = DefaultSettings.inPlaceAction.rawValue
     @AppStorage("pinPopover") private var pinPopover: Bool = DefaultSettings.pinPopover
     @AppStorage("webAppearance") private var webAppearance: WebAppearance = DefaultSettings.webAppearance
+    @AppStorage("popoverSize") private var popoverSize: PopoverSize = .normal
+    @AppStorage("checkForUpdates") private var checkForUpdates: Bool = DefaultSettings.checkForUpdates
+    @AppStorage("iCloudSync") private var iCloudSync: Bool = DefaultSettings.iCloudSync
+
+    @AppStorage("swapLangKey") private var swapLangKey: String = DefaultSettings.SwapLang.key.description
+    @AppStorage("swapLangModifier") private var swapLangModifier: String = DefaultSettings.SwapLang.modifier.description
+    @AppStorage("swapLangEnabled") private var swapLangEnabled: Bool = false
+    @AppStorage("translateClipboardKey") private var translateClipboardKey: String = DefaultSettings.TranslateClipboard.key.description
+    @AppStorage("translateClipboardModifier") private var translateClipboardModifier: String = DefaultSettings.TranslateClipboard.modifier.description
+    @AppStorage("translateClipboardEnabled") private var translateClipboardEnabled: Bool = false
+    @AppStorage("copyResultKey") private var copyResultKey: String = DefaultSettings.CopyResult.key.description
+    @AppStorage("copyResultModifier") private var copyResultModifier: String = DefaultSettings.CopyResult.modifier.description
+    @AppStorage("copyResultEnabled") private var copyResultEnabled: Bool = false
 
     override init() {
         super.init()
         let observedKeys = [
             "showHideKey", "showHideModifier", "showHideEnabled",
             "translateNowKey", "translateNowModifier", "translateNowEnabled",
-            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance"
+            "swapLangKey", "swapLangModifier", "swapLangEnabled",
+            "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
+            "copyResultKey", "copyResultModifier", "copyResultEnabled",
+            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
+            "popoverSize", "iCloudSync"
         ]
         for key in observedKeys {
             UserDefaults.standard.addObserver(self, forKeyPath: key, options: .new, context: nil)
@@ -462,7 +560,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let observedKeys = [
             "showHideKey", "showHideModifier", "showHideEnabled",
             "translateNowKey", "translateNowModifier", "translateNowEnabled",
-            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance"
+            "swapLangKey", "swapLangModifier", "swapLangEnabled",
+            "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
+            "copyResultKey", "copyResultModifier", "copyResultEnabled",
+            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
+            "popoverSize", "iCloudSync"
         ]
         for key in observedKeys {
             UserDefaults.standard.removeObserver(self, forKeyPath: key)
@@ -475,6 +577,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             setupToggleAppHotkeys()
         } else if keyPath == "translateNowKey" || keyPath == "translateNowModifier" || keyPath == "translateNowEnabled" {
             setupTranslateNowHotkey()
+        } else if keyPath == "swapLangKey" || keyPath == "swapLangModifier" || keyPath == "swapLangEnabled" {
+            setupSwapLangHotkey()
+        } else if keyPath == "translateClipboardKey" || keyPath == "translateClipboardModifier" || keyPath == "translateClipboardEnabled" {
+            setupTranslateClipboardHotkey()
+        } else if keyPath == "copyResultKey" || keyPath == "copyResultModifier" || keyPath == "copyResultEnabled" {
+            setupCopyResultHotkey()
         } else if keyPath == "menuBarIcon" {
             updateMenuBarIcon()
         } else if keyPath == "autoClipboardTranslate" {
@@ -483,6 +591,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             updatePopoverBehavior()
         } else if keyPath == "webAppearance" {
             applyWebAppearance()
+        } else if keyPath == "popoverSize" {
+            updatePopoverSize()
+        } else if keyPath == "iCloudSync" {
+            BT.configureICloudSync(enabled: iCloudSync)
         }
     }
 
@@ -538,6 +650,84 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         injectAppearanceCSS(webView: webView, appearance: webAppearance)
     }
 
+    func setupSwapLangHotkey() {
+        hotkeySwapLang = nil
+        guard swapLangEnabled else { return }
+        let key = Key(string: swapLangKey) ?? DefaultSettings.SwapLang.key
+        let mod = Key(string: swapLangModifier) ?? DefaultSettings.SwapLang.modifier
+        hotkeySwapLang = HotKey(
+            key: key,
+            modifiers: keyToNSEventModifierFlags(key: mod),
+            keyDownHandler: { [weak self] in
+                self?.BT.swapLanguages()
+            }
+        )
+    }
+
+    func setupTranslateClipboardHotkey() {
+        hotkeyTranslateClipboard = nil
+        guard translateClipboardEnabled else { return }
+        let key = Key(string: translateClipboardKey) ?? DefaultSettings.TranslateClipboard.key
+        let mod = Key(string: translateClipboardModifier) ?? DefaultSettings.TranslateClipboard.modifier
+        hotkeyTranslateClipboard = HotKey(
+            key: key,
+            modifiers: keyToNSEventModifierFlags(key: mod),
+            keyDownHandler: { [weak self] in
+                self?.translateClipboardNow()
+            }
+        )
+    }
+
+    func setupCopyResultHotkey() {
+        hotkeyCopyResult = nil
+        guard copyResultEnabled else { return }
+        let key = Key(string: copyResultKey) ?? DefaultSettings.CopyResult.key
+        let mod = Key(string: copyResultModifier) ?? DefaultSettings.CopyResult.modifier
+        hotkeyCopyResult = HotKey(
+            key: key,
+            modifiers: keyToNSEventModifierFlags(key: mod),
+            keyDownHandler: { [weak self] in
+                self?.copyResultNow()
+            }
+        )
+    }
+
+    private func translateClipboardNow() {
+        guard let clipText = NSPasteboard.general.string(forType: .string),
+              !clipText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let trimmed = clipText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        showPopoverIfNeeded()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            guard let webView = self.BT.webView else { return }
+            injectClipboardText(webView: webView, text: trimmed)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                triggerTranslateNow(webView: webView)
+            }
+        }
+    }
+
+    private func copyResultNow() {
+        guard let webView = BT.webView else { return }
+        readTranslationResult(from: webView) { text in
+            guard let text, !text.isEmpty else { return }
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+            DispatchQueue.main.async {
+                withAnimation { self.BT.justCopied = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation { self.BT.justCopied = false }
+                }
+            }
+        }
+    }
+
+    func updatePopoverSize() {
+        guard let popover = self.popover else { return }
+        let dims = popoverSize.dimensions
+        popover.contentSize = NSSize(width: dims.width, height: dims.height)
+    }
+
     private func makeMenuBarImage(named name: String) -> NSImage? {
         guard let source = NSImage(named: name) else { return nil }
 
@@ -563,8 +753,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let contentView = ContentView(BT: BT)
 
+        let dims = popoverSize.dimensions
         let popover = NSPopover()
-        popover.contentSize = NSSize(width: Constants.AppSize.width, height: Constants.AppSize.height)
+        popover.contentSize = NSSize(width: dims.width, height: dims.height)
         popover.behavior = pinPopover ? .applicationDefined : .transient
         popover.contentViewController = NSHostingController(rootView: contentView)
         self.popover = popover
@@ -581,7 +772,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupToggleAppHotkeys()
         setupTranslateNowHotkey()
+        setupSwapLangHotkey()
+        setupTranslateClipboardHotkey()
+        setupCopyResultHotkey()
         startClipboardWatcher()
+
+        // iCloud sync
+        BT.configureICloudSync(enabled: iCloudSync)
+
+        // Check for updates on launch
+        #if !APPSTORE
+        if checkForUpdates {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                UpdateChecker.shared.checkForUpdates()
+            }
+        }
+        #endif
     }
 
     @objc func togglePopover(_ sender: AnyObject?) {
@@ -691,6 +897,52 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             keyDown?.post(tap: .cgAnnotatedSessionEventTap)
             keyUp?.post(tap: .cgAnnotatedSessionEventTap)
+        }
+    }
+}
+
+// MARK: - Update Checker
+
+class UpdateChecker {
+    static let shared = UpdateChecker()
+    private let releasesURL = "https://api.github.com/repos/trinhnv1205/BarTranslate/releases/latest"
+
+    func checkForUpdates() {
+        guard let url = URL(string: releasesURL) else { return }
+        var request = URLRequest(url: url)
+        request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 10
+
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            guard error == nil, let data = data else { return }
+
+            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let tagName = json["tag_name"] as? String,
+                  let htmlURL = json["html_url"] as? String else { return }
+
+            let remoteVersion = tagName.trimmingCharacters(in: CharacterSet(charactersIn: "vV"))
+            let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+
+            guard remoteVersion.compare(currentVersion, options: .numeric) == .orderedDescending else { return }
+
+            DispatchQueue.main.async {
+                self.showUpdateAlert(version: remoteVersion, url: htmlURL)
+            }
+        }.resume()
+    }
+
+    private func showUpdateAlert(version: String, url: String) {
+        let alert = NSAlert()
+        alert.messageText = "Update Available"
+        alert.informativeText = "BarTranslate \(version) is available. You are currently running \(Bundle.main.appVersionLong)."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Download")
+        alert.addButton(withTitle: "Later")
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            if let downloadURL = URL(string: url) {
+                NSWorkspace.shared.open(downloadURL)
+            }
         }
     }
 }

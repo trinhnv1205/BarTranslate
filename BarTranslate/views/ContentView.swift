@@ -19,6 +19,9 @@ struct ContentView: View {
 
     @ObservedObject var BT: BarTranslate
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = .google
+    @AppStorage("popoverSize") private var popoverSize: PopoverSize = .normal
+
+    private var dims: (width: CGFloat, height: CGFloat) { popoverSize.dimensions }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -48,14 +51,14 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.15), value: BT.currentView)
         }
         .frame(
-            minWidth: Constants.AppSize.width,
-            minHeight: Constants.AppSize.height,
+            minWidth: dims.width,
+            minHeight: dims.height,
             alignment: .topLeading
         )
         // Popover arrow color – match window background instead of harsh blue
         .background(
             Color(NSColor.windowBackgroundColor)
-                .position(x: Constants.AppSize.width / 2, y: -Constants.AppSize.height / 2 + 10)
+                .position(x: dims.width / 2, y: -dims.height / 2 + 10)
         )
     }
 
