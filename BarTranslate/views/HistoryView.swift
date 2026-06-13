@@ -18,11 +18,11 @@ struct HistoryView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
-                TextField("Search source, result, or language", text: $searchQuery)
+                TextField("Search source, result, or language".loc, text: $searchQuery)
                     .textFieldStyle(.roundedBorder)
 
                 Picker("Language", selection: $languageFilter) {
-                    Text("All").tag("all")
+                    Text("All".loc).tag("all")
                     ForEach(BT.allHistoryLanguages(), id: \.self) { lang in
                         Text(lang.uppercased()).tag(lang)
                     }
@@ -38,7 +38,7 @@ struct HistoryView: View {
                         .foregroundColor(favoritesOnly ? Color(NSColor.systemOrange) : .secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help(favoritesOnly ? "Show all" : "Show favorites only")
+                .help(favoritesOnly ? "Show all".loc : "Show favorites only".loc)
             }
             .padding(.horizontal, 12)
             .padding(.top, 10)
@@ -48,11 +48,11 @@ struct HistoryView: View {
                     Image(systemName: BT.history.isEmpty ? "tray" : "magnifyingglass")
                         .font(.system(size: 18))
                         .foregroundColor(.secondary)
-                    Text(BT.history.isEmpty ? "No translations yet" : "No matches")
+                    Text(BT.history.isEmpty ? "No translations yet".loc : "No matches".loc)
                         .font(.system(size: 13, weight: .medium))
                     Text(BT.history.isEmpty
-                         ? "Use Translate tab or clipboard auto translate to build history"
-                         : "Try a different search or filter")
+                         ? "Use Translate tab or clipboard auto translate to build history".loc
+                         : "Try a different search or filter".loc)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -72,16 +72,16 @@ struct HistoryView: View {
 
             HStack(spacing: 12) {
                 if !BT.history.isEmpty {
-                    Button("Export CSV") { BT.exportHistoryCSV() }
+                    Button("Export CSV".loc) { BT.exportHistoryCSV() }
                         .buttonStyle(.link)
                         .font(.system(size: 11))
-                    Button("Backup") { BT.exportHistoryJSON() }
+                    Button("Backup".loc) { BT.exportHistoryJSON() }
                         .buttonStyle(.link)
                         .font(.system(size: 11))
                         .help("Save a full backup (favorites and flashcard progress included)")
                 }
 
-                Button("Restore") { BT.importHistoryJSON() }
+                Button("Restore".loc) { BT.importHistoryJSON() }
                     .buttonStyle(.link)
                     .font(.system(size: 11))
                     .help("Restore history from a backup file")
@@ -89,7 +89,7 @@ struct HistoryView: View {
                 Spacer()
 
                 if BT.history.contains(where: { !$0.isFavorite }) {
-                    Button("Clear non-favorites") {
+                    Button("Clear non-favorites".loc) {
                         BT.clearNonFavoriteHistory()
                     }
                     .buttonStyle(.link)
@@ -136,40 +136,40 @@ private struct HistoryRow: View {
                 } label: {
                     Image(systemName: item.isFavorite ? "pin.fill" : "pin")
                 }
-                .help(item.isFavorite ? "Unpin" : "Pin")
-                .accessibilityLabel(item.isFavorite ? "Unpin" : "Pin")
+                .help(item.isFavorite ? "Unpin".loc : "Pin".loc)
+                .accessibilityLabel(item.isFavorite ? "Unpin".loc : "Pin".loc)
 
                 Button {
                     BT.toggleFlashcardDeck(itemID: item.id)
                 } label: {
                     Image(systemName: item.isInFlashcardDeck ? "rectangle.stack.fill" : "rectangle.stack.badge.plus")
                 }
-                .help(item.isInFlashcardDeck ? "Remove from deck" : "Add to deck")
-                .accessibilityLabel(item.isInFlashcardDeck ? "Remove from flashcard deck" : "Add to flashcard deck")
+                .help(item.isInFlashcardDeck ? "Remove from flashcard deck".loc : "Add to flashcard deck".loc)
+                .accessibilityLabel(item.isInFlashcardDeck ? "Remove from flashcard deck".loc : "Add to flashcard deck".loc)
 
                 Button {
                     BT.speak(text: item.resultText, language: item.targetLang)
                 } label: {
                     Image(systemName: "speaker.wave.2")
                 }
-                .help("Speak")
-                .accessibilityLabel("Speak translation")
+                .help("Speak".loc)
+                .accessibilityLabel("Speak translation".loc)
 
                 Button {
                     AppDelegate.instance?.setClipboard(item.resultText)
                 } label: {
                     Image(systemName: "doc.on.doc")
                 }
-                .help("Copy")
-                .accessibilityLabel("Copy translation")
+                .help("Copy".loc)
+                .accessibilityLabel("Copy translation".loc)
 
                 Button {
                     BT.removeHistory(itemID: item.id)
                 } label: {
                     Image(systemName: "trash")
                 }
-                .help("Delete")
-                .accessibilityLabel("Delete entry")
+                .help("Delete".loc)
+                .accessibilityLabel("Delete entry".loc)
 
                 Spacer()
 
@@ -178,8 +178,8 @@ private struct HistoryRow: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
-                .help("Reuse with original languages")
-                .accessibilityLabel("Reuse with original languages")
+                .help("Reuse with original languages".loc)
+                .accessibilityLabel("Reuse with original languages".loc)
             }
             .buttonStyle(.link)
             .font(.system(size: 12))
@@ -224,10 +224,10 @@ struct FlashcardView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
-                TextField("Search flashcards", text: $searchQuery)
+                TextField("Search flashcards".loc, text: $searchQuery)
                     .textFieldStyle(.roundedBorder)
 
-                Toggle("Due only", isOn: $dueOnly)
+                Toggle("Due only".loc, isOn: $dueOnly)
                     .toggleStyle(.switch)
                     .font(.system(size: 11))
             }
@@ -235,9 +235,9 @@ struct FlashcardView: View {
             .padding(.top, 10)
 
             HStack(spacing: 8) {
-                StatBadge(title: "Deck", value: "\(BT.history.filter { $0.isInFlashcardDeck }.count)")
-                StatBadge(title: "Due", value: "\(dueCount)")
-                StatBadge(title: "Mastered", value: "\(masteredCount)")
+                StatBadge(title: "Deck".loc, value: "\(BT.history.filter { $0.isInFlashcardDeck }.count)")
+                StatBadge(title: "Due".loc, value: "\(dueCount)")
+                StatBadge(title: "Mastered".loc, value: "\(masteredCount)")
                 Spacer()
             }
             .padding(.horizontal, 12)
@@ -245,7 +245,7 @@ struct FlashcardView: View {
             if let card = currentCard {
                 VStack(spacing: 10) {
                     VStack(spacing: 6) {
-                        Text(showAnswer ? "Back" : "Front")
+                        Text(showAnswer ? "Back".loc : "Front".loc)
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(.secondary)
 
@@ -292,13 +292,13 @@ struct FlashcardView: View {
                         currentIndex = (currentIndex - 1 + deck.count) % deck.count
                         showAnswer = false
                     } label: {
-                        Label("Prev", systemImage: "arrow.left")
+                        Label("Prev".loc, systemImage: "arrow.left")
                     }
 
                     Button {
                         showAnswer.toggle()
                     } label: {
-                        Label(showAnswer ? "Hide" : "Flip", systemImage: "arrow.2.squarepath")
+                        Label(showAnswer ? "Hide".loc : "Flip".loc, systemImage: "arrow.2.squarepath")
                     }
 
                     Spacer()
@@ -307,14 +307,14 @@ struct FlashcardView: View {
                         BT.recordFlashcardReview(itemID: card.id, remembered: false)
                         advanceAfterReview()
                     } label: {
-                        Label("Again", systemImage: "arrow.uturn.backward")
+                        Label("Again".loc, systemImage: "arrow.uturn.backward")
                     }
 
                     Button {
                         BT.recordFlashcardReview(itemID: card.id, remembered: true)
                         advanceAfterReview()
                     } label: {
-                        Label("Remembered", systemImage: "checkmark.circle")
+                        Label("Remembered".loc, systemImage: "checkmark.circle")
                     }
                 }
                 .buttonStyle(.link)
@@ -326,9 +326,9 @@ struct FlashcardView: View {
                     Image(systemName: "rectangle.stack")
                         .font(.system(size: 18))
                         .foregroundColor(.secondary)
-                    Text("No flashcards available")
+                    Text("No flashcards available".loc)
                         .font(.system(size: 13, weight: .medium))
-                    Text("Add cards from History, or disable Due only to review everything")
+                    Text("Add cards from History, or disable Due only to review everything".loc)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                 }

@@ -191,6 +191,16 @@ private let viTable: [String: String] = [
     "Backup": "Sao lưu",
     "Restore": "Khôi phục",
     "Clear non-favorites": "Xóa mục không yêu thích",
+    "Show all": "Hiện tất cả",
+    "Show favorites only": "Chỉ hiện mục yêu thích",
+    "Pin": "Ghim",
+    "Unpin": "Bỏ ghim",
+    "Remove from flashcard deck": "Xóa khỏi bộ thẻ",
+    "Add to flashcard deck": "Thêm vào bộ thẻ",
+    "Speak": "Đọc",
+    "Copy translation": "Sao chép bản dịch",
+    "Delete": "Xóa",
+    "Delete entry": "Xóa mục",
 
     // Flashcards
     "Search flashcards": "Tìm thẻ ghi nhớ",
