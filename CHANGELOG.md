@@ -21,6 +21,8 @@ A commercialization milestone: BarTranslate becomes a freemium app.
 - The history "Saved items" picker honestly reflects the free-tier cap.
 - Request an **App Store rating** after sustained use (once per version).
 - Set the app **copyright**; show version, build, and copyright in About.
+- Full-fidelity **JSON backup & restore** of history (favorites and flashcard
+  progress included); restore merges and is available on every tier.
 
 ### Fixed
 - Never auto-delete **favorites** when enforcing the history limit (no silent
