@@ -175,6 +175,9 @@ private let viTable: [String: String] = [
     "Retry": "Thử lại",
     "Copy": "Sao chép",
     "Copied!": "Đã sao chép!",
+    "Speak translation": "Đọc bản dịch",
+    "Stop speaking": "Dừng đọc",
+    "Reuse with original languages": "Dùng lại với ngôn ngữ gốc",
 
     // History view
     "Search source, result, or language": "Tìm theo nguồn, kết quả hoặc ngôn ngữ",

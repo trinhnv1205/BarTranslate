@@ -113,8 +113,8 @@ struct NavTabButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { isHovered = $0 }
-        .help("\(label) (\u{2318}\(shortcut))")
-        .accessibilityLabel(Text(label))
+        .help("\(label.loc) (\u{2318}\(shortcut))")
+        .accessibilityLabel(Text(label.loc))
         .keyboardShortcut(KeyEquivalent(Character(shortcut)), modifiers: .command)
     }
 }

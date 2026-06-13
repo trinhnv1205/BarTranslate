@@ -30,7 +30,7 @@ struct TranslateView: View {
                     ProgressView()
                         .scaleEffect(0.7)
                         .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
-                    Text("Loading…")
+                    Text("Loading…".loc)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                 }
@@ -45,16 +45,16 @@ struct TranslateView: View {
                     Image(systemName: "wifi.slash")
                         .font(.system(size: 28, weight: .light))
                         .foregroundColor(.secondary)
-                    Text("Can't reach Google Translate")
+                    Text("Can't reach Google Translate".loc)
                         .font(.system(size: 14, weight: .semibold))
-                    Text("Check your internet connection and try again.")
+                    Text("Check your internet connection and try again.".loc)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                     Button {
                         BT.retryLoad(for: translationProvider)
                     } label: {
-                        Text("Retry")
+                        Text("Retry".loc)
                             .font(.system(size: 12, weight: .semibold))
                             .padding(.horizontal, 18)
                             .padding(.vertical, 6)
@@ -133,7 +133,7 @@ struct CopyResultButton: View {
                 HStack(spacing: 5) {
                     Image(systemName: BT.justCopied ? "checkmark" : "doc.on.doc")
                         .font(.system(size: 11, weight: .medium))
-                    Text(BT.justCopied ? "Copied!" : "Copy")
+                    Text(BT.justCopied ? "Copied!".loc : "Copy".loc)
                         .font(.system(size: 11, weight: .medium))
                 }
                 .foregroundColor(BT.justCopied ? Color(NSColor.systemGreen) : (isHovered ? .primary : .secondary))
@@ -192,8 +192,8 @@ struct SwapLanguagesButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { isHovered = $0 }
-        .help("Swap languages")
-        .accessibilityLabel("Swap languages")
+        .help("Swap languages".loc)
+        .accessibilityLabel("Swap languages".loc)
         .opacity(BT.lastSourceLang == "auto" ? 0.4 : 1)
         .disabled(BT.lastSourceLang == "auto")
     }
@@ -226,8 +226,8 @@ struct SpeakResultButton: View {
             }
             .buttonStyle(PlainButtonStyle())
             .onHover { isHovered = $0 }
-            .help(BT.isSpeaking ? "Stop speaking" : "Speak translation")
-            .accessibilityLabel(BT.isSpeaking ? "Stop speaking" : "Speak translation")
+            .help(BT.isSpeaking ? "Stop speaking".loc : "Speak translation".loc)
+            .accessibilityLabel(BT.isSpeaking ? "Stop speaking".loc : "Speak translation".loc)
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
         }
     }
