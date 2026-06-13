@@ -335,7 +335,7 @@ class BarTranslate: ObservableObject {
     // MARK: - Export History
 
     func exportHistoryCSV() {
-        guard ProManager.shared.requireFullAccess(for: .csvExport) else { return }
+        guard ProManager.shared.requireFullAccess(for: .dataExport) else { return }
 
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.commaSeparatedText]
@@ -362,7 +362,7 @@ class BarTranslate: ObservableObject {
 
     /// Full-fidelity JSON backup (keeps favorites, flashcard progress, etc.).
     func exportHistoryJSON() {
-        guard ProManager.shared.requireFullAccess(for: .csvExport) else { return }
+        guard ProManager.shared.requireFullAccess(for: .dataExport) else { return }
 
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.json]
@@ -427,15 +427,15 @@ class BarTranslate: ObservableObject {
 
     func configureICloudSync(enabled: Bool) {
         // iCloud sync is a Pro feature; only enable it with full access.
-        let enabled = enabled && ProManager.shared.hasFullAccess
-        iCloudSyncEnabled = enabled
+        let effectiveEnabled = enabled && ProManager.shared.hasFullAccess
+        iCloudSyncEnabled = effectiveEnabled
 
         if let observer = iCloudObserver {
             NotificationCenter.default.removeObserver(observer)
             iCloudObserver = nil
         }
 
-        guard enabled else { return }
+        guard effectiveEnabled else { return }
 
         // Push current history to iCloud
         pushHistoryToICloud()

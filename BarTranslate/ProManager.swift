@@ -24,7 +24,7 @@ import StoreKit
 enum ProFeature: String, CaseIterable, Identifiable {
     case unlimitedHistory
     case iCloudSync
-    case csvExport
+    case dataExport
     case prioritySupport
 
     var id: String { rawValue }
@@ -33,7 +33,7 @@ enum ProFeature: String, CaseIterable, Identifiable {
         switch self {
         case .unlimitedHistory: return "Unlimited history"
         case .iCloudSync:       return "iCloud sync"
-        case .csvExport:        return "CSV export"
+        case .dataExport:       return "Export & backup"
         case .prioritySupport:  return "Priority support"
         }
     }
@@ -44,8 +44,8 @@ enum ProFeature: String, CaseIterable, Identifiable {
             return "Keep up to 200 translations instead of \(ProManager.freeHistoryLimit)."
         case .iCloudSync:
             return "Sync history and favorites across all your Macs."
-        case .csvExport:
-            return "Export your translation history to a CSV file."
+        case .dataExport:
+            return "Export your history to CSV or a full JSON backup."
         case .prioritySupport:
             return "Get faster help and shape the roadmap."
         }
@@ -55,7 +55,7 @@ enum ProFeature: String, CaseIterable, Identifiable {
         switch self {
         case .unlimitedHistory: return "clock.arrow.circlepath"
         case .iCloudSync:       return "icloud"
-        case .csvExport:        return "square.and.arrow.up"
+        case .dataExport:       return "square.and.arrow.up"
         case .prioritySupport:  return "bolt.heart"
         }
     }
