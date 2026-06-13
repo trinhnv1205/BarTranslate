@@ -217,7 +217,11 @@ class BarTranslate: ObservableObject {
 
     private func enforceHistoryLimit() {
         let configuredLimit = UserDefaults.standard.integer(forKey: "historyLimit")
-        let limit = max(50, min(configuredLimit == 0 ? DefaultSettings.historyLimit : configuredLimit, 200))
+        var limit = max(50, min(configuredLimit == 0 ? DefaultSettings.historyLimit : configuredLimit, 200))
+        // Free tier keeps a smaller history; Pro/trial unlocks the full limit.
+        if !ProManager.shared.hasFullAccess {
+            limit = min(limit, ProManager.freeHistoryLimit)
+        }
         if history.count > limit {
             history = Array(history.prefix(limit))
         }
@@ -293,6 +297,8 @@ class BarTranslate: ObservableObject {
     // MARK: - Export History
 
     func exportHistoryCSV() {
+        guard ProManager.shared.requireFullAccess(for: .csvExport) else { return }
+
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.nameFieldStringValue = "BarTranslate_History_\(dateStampForExport()).csv"
@@ -343,6 +349,8 @@ class BarTranslate: ObservableObject {
     private var iCloudObserver: NSObjectProtocol?
 
     func configureICloudSync(enabled: Bool) {
+        // iCloud sync is a Pro feature; only enable it with full access.
+        let enabled = enabled && ProManager.shared.hasFullAccess
         iCloudSyncEnabled = enabled
 
         if let observer = iCloudObserver {
@@ -779,6 +787,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // iCloud sync
         BT.configureICloudSync(enabled: iCloudSync)
+
+        // First-run onboarding
+        OnboardingController.shared.presentIfNeeded()
 
         // Check for updates on launch
         #if !APPSTORE

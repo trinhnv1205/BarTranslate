@@ -13,6 +13,8 @@ import ServiceManagement
 
 struct SettingsView: View {
 
+    @ObservedObject private var pro = ProManager.shared
+
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = DefaultSettings.translationProvider
     @AppStorage("showHideKey") private var showHideKey: String = DefaultSettings.ToggleApp.key.description
     @AppStorage("showHideModifier") private var showHideModifier: String = DefaultSettings.ToggleApp.modifier.description
@@ -42,6 +44,12 @@ struct SettingsView: View {
     @AppStorage("copyResultEnabled") private var copyResultEnabled: Bool = false
 
     private let historyOptions: [Int] = [50, 100, 150, 200]
+
+    private var feedbackMailto: String {
+        let version = Bundle.main.appVersionLong
+        let subject = "BarTranslate \(version) Feedback".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return "mailto:\(Constants.Links.supportEmail)?subject=\(subject)"
+    }
     private var inPlaceAction: Binding<InPlaceAction> {
         Binding<InPlaceAction>(
             get: { InPlaceAction(rawValue: inPlaceActionRaw) ?? .none },
@@ -52,6 +60,9 @@ struct SettingsView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
+
+                // BarTranslate Pro
+                ProSettingsCard()
 
                 // Translation Provider
                 SettingsSection(title: "Provider") {
@@ -315,8 +326,20 @@ struct SettingsView: View {
                         .labelsHidden()
                     }
                     SettingsRow(label: "iCloud sync") {
-                        Toggle("", isOn: $iCloudSync)
+                        HStack(spacing: 6) {
+                            if !pro.hasFullAccess {
+                                ProLockBadge()
+                            }
+                            Toggle("", isOn: Binding(
+                                get: { iCloudSync && pro.hasFullAccess },
+                                set: { newValue in
+                                    if newValue && !pro.requireFullAccess(for: .iCloudSync) { return }
+                                    iCloudSync = newValue
+                                }
+                            ))
                             .labelsHidden()
+                            .disabled(!pro.hasFullAccess)
+                        }
                     }
                     #if !APPSTORE
                     SettingsRow(label: "Check for updates") {
@@ -341,6 +364,20 @@ struct SettingsView: View {
                         .font(.system(size: 12))
                     }
                     #endif
+                }
+
+                // Support & Legal
+                SettingsSection(title: "Support & Legal") {
+                    SettingsLinkRow(label: "Send feedback", systemImage: "envelope",
+                                    urlString: feedbackMailto)
+                    SettingsLinkRow(label: "Rate BarTranslate", systemImage: "star",
+                                    urlString: Constants.Links.appStore)
+                    SettingsLinkRow(label: "Website", systemImage: "globe",
+                                    urlString: Constants.Links.website)
+                    SettingsLinkRow(label: "Privacy Policy", systemImage: "hand.raised",
+                                    urlString: Constants.Links.privacy)
+                    SettingsLinkRow(label: "Terms of Use", systemImage: "doc.text",
+                                    urlString: Constants.Links.terms)
                 }
 
                 #if !APPSTORE
@@ -444,6 +481,57 @@ struct SettingsRow<Trailing: View>: View {
                         .stroke(Color(NSColor.separatorColor).opacity(0.35), lineWidth: 0.5)
                 )
         )
+    }
+}
+
+struct SettingsLinkRow: View {
+    let label: String
+    let systemImage: String
+    let urlString: String
+
+    var body: some View {
+        Button {
+            guard let url = URL(string: urlString) else { return }
+            NSWorkspace.shared.open(url)
+        } label: {
+            HStack {
+                Image(systemName: systemImage)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .frame(width: 16)
+                Text(label)
+                    .font(.system(size: 13))
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(NSColor.controlBackgroundColor))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color(NSColor.separatorColor).opacity(0.35), lineWidth: 0.5)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+/// Small "PRO" pill used to mark gated controls.
+struct ProLockBadge: View {
+    var body: some View {
+        Text("PRO")
+            .font(.system(size: 9, weight: .bold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(Capsule().fill(Color.accentColor))
+            .help("Pro feature")
     }
 }
 

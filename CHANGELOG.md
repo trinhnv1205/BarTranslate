@@ -1,5 +1,22 @@
 # BarTranslate Changelog
 
+## Unreleased | BarTranslate Pro
+
+A commercialization milestone: BarTranslate becomes a freemium app.
+
+- **Free 14-day trial** that unlocks every premium feature, after which Pro
+  features require a one-time unlock (`ProManager`).
+- **Offline license activation** via `BART-XXXX-XXXX-XXXX` keys, with the
+  entitlement layer structured for a future StoreKit in-app purchase.
+- **Pro upgrade card** in Settings showing trial/Pro status, plus a license-key
+  entry sheet.
+- **First-run onboarding** window introducing core features and the trial.
+- **Support & Legal** section in Settings: send feedback, rate the app, website,
+  Privacy Policy, and Terms of Use.
+- Added **Privacy Policy** (`PRIVACY.md`) and **Terms of Use** (`TERMS.md`).
+- History retention, iCloud sync, and CSV export are now Pro features. The free
+  tier keeps up to 50 history items; Pro/trial unlocks the full 200.
+
 ## v2.0.0 | Autofocus; Removed DeepL
 
 - When opening BarTranslate, the translation input is now focussed automatically (except on startup).

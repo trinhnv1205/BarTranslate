@@ -54,6 +54,21 @@ open -a BarTranslate
 - `DefaultSettings.swift` provides static defaults (hotkeys, provider, limits)
 - Settings accessible via Settings menu or `SettingsView`
 
+### Commercialization / Pro (freemium)
+- `ProManager.swift` — `ProManager` singleton (`ObservableObject`) is the single
+  source of truth for entitlements. `hasFullAccess == isPro || isTrialActive`
+  (14-day trial). `ProFeature` enumerates gated capabilities. `LicenseValidator`
+  does offline `BART-XXXX-XXXX-XXXX` key validation (SHA-256 checksum);
+  `setPurchased(_:)` is the hook for a future StoreKit IAP.
+- Gating: `enforceHistoryLimit()` caps free tier at `ProManager.freeHistoryLimit`
+  (50); `exportHistoryCSV()` and `configureICloudSync(enabled:)` require full
+  access. Use `requireFullAccess(for:)` to gate + show the paywall prompt.
+- `views/ProView.swift` — `ProSettingsCard` (Settings upgrade card),
+  `LicenseActivationView` (key entry sheet), `OnboardingView` +
+  `OnboardingController` (first-run window, shown once via `presentIfNeeded()`).
+- `Constants.Links` centralizes marketing/legal/support URLs.
+- Legal docs live at repo root: `PRIVACY.md`, `TERMS.md`.
+
 ### Key Types
 - `TranslationProvider` — Currently only `.google`
 - `InPlaceAction` — `.none`, `.copy`, `.paste` (post-translate action)
