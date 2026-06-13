@@ -179,11 +179,11 @@ final class ProManager: ObservableObject {
 
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "Your BarTranslate Pro trial has ended"
-            alert.informativeText = "You can keep using BarTranslate for free. Upgrade to Pro to restore unlimited history, iCloud sync, and export/backup."
+            alert.messageText = "Your BarTranslate Pro trial has ended".loc
+            alert.informativeText = "You can keep using BarTranslate for free. Upgrade to Pro to restore unlimited history, iCloud sync, and export/backup.".loc
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "Upgrade")
-            alert.addButton(withTitle: "Maybe Later")
+            alert.addButton(withTitle: "Upgrade".loc)
+            alert.addButton(withTitle: "Maybe Later".loc)
             if alert.runModal() == .alertFirstButtonReturn,
                let url = URL(string: Constants.Links.proPurchase) {
                 NSWorkspace.shared.open(url)
@@ -195,12 +195,18 @@ final class ProManager: ObservableObject {
 
     private func presentPaywallAlert(for feature: ProFeature) {
         DispatchQueue.main.async {
+            let title = feature.title.loc
             let alert = NSAlert()
-            alert.messageText = "\(feature.title) is a Pro feature"
-            alert.informativeText = "Unlock BarTranslate Pro to use \(feature.title.lowercased()) and more. Open Settings ▸ BarTranslate Pro to upgrade or enter your license key."
+            if Localization.isVietnamese {
+                alert.messageText = "\(title) là tính năng Pro"
+                alert.informativeText = "Mở khóa BarTranslate Pro để dùng \(title.lowercased()) và nhiều hơn nữa. Vào Cài đặt ▸ BarTranslate Pro để nâng cấp hoặc nhập mã bản quyền."
+            } else {
+                alert.messageText = "\(title) is a Pro feature"
+                alert.informativeText = "Unlock BarTranslate Pro to use \(title.lowercased()) and more. Open Settings ▸ BarTranslate Pro to upgrade or enter your license key."
+            }
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "Learn More")
-            alert.addButton(withTitle: "Not Now")
+            alert.addButton(withTitle: "Learn More".loc)
+            alert.addButton(withTitle: "Not Now".loc)
             if alert.runModal() == .alertFirstButtonReturn,
                let url = URL(string: Constants.Links.proPurchase) {
                 NSWorkspace.shared.open(url)

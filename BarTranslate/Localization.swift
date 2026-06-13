@@ -64,6 +64,13 @@ extension String {
 // MARK: - Vietnamese translations
 
 private let viTable: [String: String] = [
+    // Pro feature names
+    "Unlimited history": "Lịch sử không giới hạn",
+    "Export & backup": "Xuất & sao lưu",
+    "Priority support": "Hỗ trợ ưu tiên",
+    "Learn More": "Tìm hiểu thêm",
+    "Not Now": "Để sau",
+
     // Pro / paywall
     "Upgrade": "Nâng cấp",
     "Upgrade to Pro": "Nâng cấp lên Pro",
