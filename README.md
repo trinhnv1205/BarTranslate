@@ -27,7 +27,7 @@ Feel free to [share your ideas](https://github.com/ThijmenDam/BarTranslate/discu
 * Configurable global hotkeys: toggle the app, translate now, swap languages, translate clipboard, copy result.
 * Smart autofocus on the source text field when opening the app.
 * Clipboard automation: auto-paste on open and auto-translate clipboard.
-* Translation **history** with search/filter and CSV export.
+* Translation **history** with search/filter, CSV export, and full JSON backup/restore.
 * **Flashcards** with spaced repetition to learn from your translations.
 * Text-to-speech, language swap, web dark mode, pinned popover, and launch at login.
 * Optional **iCloud sync** of history across your Macs.
@@ -42,8 +42,10 @@ premium feature. After the trial, Pro features require a one-time unlock:
 | Core translation, hotkeys, TTS, flashcards | ✅ | ✅ |
 | Translation history | up to 50 | up to 200 |
 | iCloud sync | — | ✅ |
-| CSV export | — | ✅ |
+| Export (CSV) & JSON backup | — | ✅ |
 | Priority support | — | ✅ |
+
+Restoring a JSON backup is always available, on every tier.
 
 Unlock Pro in **Settings ▸ BarTranslate Pro** — purchase a license or enter an
 existing license key. The entitlement layer is structured so a Mac App Store
