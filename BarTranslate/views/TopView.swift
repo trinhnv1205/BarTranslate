@@ -71,7 +71,7 @@ struct TopView: View {
 
             // Quit button
             TopBarIconButton(icon: "power") {
-                exit(0)
+                NSApplication.shared.terminate(nil)
             }
         }
         .padding(.horizontal, 14)

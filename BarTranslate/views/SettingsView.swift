@@ -428,7 +428,7 @@ struct SettingsView: View {
                 #endif
 
                 // Quit
-                Button(action: { exit(0) }) {
+                Button(action: { NSApplication.shared.terminate(nil) }) {
                     HStack(spacing: 6) {
                         Image(systemName: "power")
                             .font(.system(size: 11))
