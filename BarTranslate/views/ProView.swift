@@ -38,7 +38,7 @@ struct ProSettingsCard: View {
             if !pro.isPro {
                 HStack(spacing: 8) {
                     Link(destination: URL(string: Constants.Links.proPurchase)!) {
-                        Text("Upgrade")
+                        Text("Upgrade".loc)
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(Color.accentColor)
                             .padding(.horizontal, 14)
@@ -47,7 +47,7 @@ struct ProSettingsCard: View {
                     }
                     .buttonStyle(.plain)
 
-                    Button("Enter license key") { showingActivation = true }
+                    Button("Enter license key".loc) { showingActivation = true }
                         .font(.system(size: 12, weight: .medium))
                         .buttonStyle(.plain)
                         .foregroundStyle(.white)
@@ -56,7 +56,7 @@ struct ProSettingsCard: View {
                         .background(Capsule().stroke(Color.white.opacity(0.7), lineWidth: 1))
                 }
             } else if !pro.licenseKey.isEmpty {
-                Button("Deactivate this Mac") { showingDeactivateConfirm = true }
+                Button("Deactivate this Mac".loc) { showingDeactivateConfirm = true }
                     .font(.system(size: 11, weight: .medium))
                     .buttonStyle(.plain)
                     .foregroundStyle(.white.opacity(0.9))
@@ -81,28 +81,31 @@ struct ProSettingsCard: View {
             LicenseActivationView()
         }
         .confirmationDialog(
-            "Deactivate BarTranslate Pro on this Mac?",
+            "Deactivate BarTranslate Pro on this Mac?".loc,
             isPresented: $showingDeactivateConfirm,
             titleVisibility: .visible
         ) {
-            Button("Deactivate", role: .destructive) { pro.deactivate() }
-            Button("Cancel", role: .cancel) {}
+            Button("Deactivate".loc, role: .destructive) { pro.deactivate() }
+            Button("Cancel".loc, role: .cancel) {}
         } message: {
-            Text("Your license key will be removed from this Mac. You can re-activate it here at any time.")
+            Text("Your license key will be removed from this Mac. You can re-activate it here at any time.".loc)
         }
     }
 
     private var headline: String {
-        pro.isPro ? "BarTranslate Pro" : "Upgrade to Pro"
+        pro.isPro ? "BarTranslate Pro" : "Upgrade to Pro".loc
     }
 
     private var subline: String {
-        if pro.isPro { return "Thank you for your support!" }
+        if pro.isPro { return "Thank you for your support!".loc }
         if pro.isTrialActive {
             let days = pro.trialDaysRemaining
+            if Localization.isVietnamese {
+                return "\("Trial active".loc) · còn \(days) ngày"
+            }
             return "Trial active · \(days) day\(days == 1 ? "" : "s") left"
         }
-        return "Unlock unlimited history, iCloud sync & export"
+        return "Unlock unlimited history, iCloud sync & export".loc
     }
 }
 
@@ -116,10 +119,10 @@ struct LicenseActivationView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Activate BarTranslate Pro")
+            Text("Activate BarTranslate Pro".loc)
                 .font(.system(size: 15, weight: .semibold))
 
-            Text("Enter the license key from your purchase confirmation email.")
+            Text("Enter the license key from your purchase confirmation email.".loc)
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
 
@@ -135,11 +138,11 @@ struct LicenseActivationView: View {
             }
 
             HStack {
-                Link("Buy a license", destination: URL(string: Constants.Links.proPurchase)!)
+                Link("Buy a license".loc, destination: URL(string: Constants.Links.proPurchase)!)
                     .font(.system(size: 11))
                 Spacer()
-                Button("Cancel") { dismiss() }
-                Button("Activate", action: activate)
+                Button("Cancel".loc) { dismiss() }
+                Button("Activate".loc, action: activate)
                     .keyboardShortcut(.defaultAction)
                     .disabled(keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
             }
@@ -153,7 +156,7 @@ struct LicenseActivationView: View {
             errorMessage = nil
             dismiss()
         } else {
-            errorMessage = "That license key is not valid. Check for typos and try again."
+            errorMessage = "That license key is not valid. Check for typos and try again.".loc
         }
     }
 }
@@ -177,23 +180,23 @@ struct OnboardingView: View {
     private let pages: [OnboardingPage] = [
         OnboardingPage(
             systemImage: "character.bubble",
-            title: "Translate from your menu bar",
-            detail: "BarTranslate keeps Google Translate one click — or one hotkey — away, anywhere on your Mac."
+            title: "Translate from your menu bar".loc,
+            detail: "BarTranslate keeps Google Translate one click — or one hotkey — away, anywhere on your Mac.".loc
         ),
         OnboardingPage(
             systemImage: "keyboard",
-            title: "Fast by default",
-            detail: "Open with ⌥; , translate the clipboard instantly, and auto-paste results back into the app you were using."
+            title: "Fast by default".loc,
+            detail: "Open with ⌥; , translate the clipboard instantly, and auto-paste results back into the app you were using.".loc
         ),
         OnboardingPage(
             systemImage: "rectangle.stack",
-            title: "Learn as you go",
-            detail: "Save translations to history and review them as spaced-repetition flashcards to build vocabulary."
+            title: "Learn as you go".loc,
+            detail: "Save translations to history and review them as spaced-repetition flashcards to build vocabulary.".loc
         ),
         OnboardingPage(
             systemImage: "sparkles",
-            title: "Try Pro free for 14 days",
-            detail: "Every premium feature — unlimited history, iCloud sync and CSV export — is unlocked during your trial."
+            title: "Try Pro free for 14 days".loc,
+            detail: "Every premium feature — unlimited history, iCloud sync and CSV export — is unlocked during your trial.".loc
         )
     ]
 
@@ -216,7 +219,7 @@ struct OnboardingView: View {
 
                 if page == pages.count - 1 {
                     HStack(spacing: 6) {
-                        Text("Translate into")
+                        Text("Translate into".loc)
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                         Picker("", selection: $targetLang) {
@@ -243,7 +246,7 @@ struct OnboardingView: View {
             .padding(.bottom, 16)
 
             Button(action: advance) {
-                Text(page == pages.count - 1 ? "Get Started" : "Continue")
+                Text(page == pages.count - 1 ? "Get Started".loc : "Continue".loc)
                     .font(.system(size: 13, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)

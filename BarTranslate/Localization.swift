@@ -82,6 +82,9 @@ private let viTable: [String: String] = [
     "That license key is not valid. Check for typos and try again.":
         "Mã bản quyền không hợp lệ. Vui lòng kiểm tra lại và thử lần nữa.",
     "Deactivate": "Hủy kích hoạt",
+    "Deactivate BarTranslate Pro on this Mac?": "Hủy kích hoạt BarTranslate Pro trên máy này?",
+    "Your license key will be removed from this Mac. You can re-activate it here at any time.":
+        "Mã bản quyền sẽ được gỡ khỏi máy này. Bạn có thể kích hoạt lại tại đây bất cứ lúc nào.",
 
     // Onboarding
     "Translate from your menu bar": "Dịch ngay từ thanh menu",
