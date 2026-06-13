@@ -13,9 +13,12 @@ import AppKit
 
 /// Injects clipboard text into the Google Translate source textarea
 func injectClipboardText(webView: WKWebView, text: String) {
+    // Escape for a JS template literal: backslash first, then backtick, then
+    // `$` so that `${...}` in pasted text isn't treated as interpolation.
     let escaped = text
         .replacingOccurrences(of: "\\", with: "\\\\")
         .replacingOccurrences(of: "`", with: "\\`")
+        .replacingOccurrences(of: "$", with: "\\$")
     let js = """
     (function() {
         function tryPaste() {
