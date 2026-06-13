@@ -20,11 +20,15 @@ struct ContentView: View {
     @ObservedObject var BT: BarTranslate
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = .google
     @AppStorage("popoverSize") private var popoverSize: PopoverSize = .normal
+    @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
 
     private var dims: (width: CGFloat, height: CGFloat) { popoverSize.dimensions }
 
     var body: some View {
-        VStack(spacing: 0) {
+        // Observe the language so every tab re-renders its localized text live
+        // when the user switches language (child @State like search/scroll kept).
+        let _ = appLanguage
+        return VStack(spacing: 0) {
             TopView(contentViewState: BT)
 
             ZStack {
