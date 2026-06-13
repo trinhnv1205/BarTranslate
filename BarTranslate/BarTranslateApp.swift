@@ -862,6 +862,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // First-run onboarding
         OnboardingController.shared.presentIfNeeded()
 
+        // One-time nudge the first launch after the trial ends
+        ProManager.shared.presentTrialExpiryIfNeeded()
+
         // Check for updates on launch
         #if !APPSTORE
         if checkForUpdates {

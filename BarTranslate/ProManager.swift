@@ -170,6 +170,27 @@ final class ProManager: ObservableObject {
         if entitled != isPro { isPro = entitled }
     }
 
+    /// Show a one-time nudge the first launch after the trial has ended. Does
+    /// nothing for Pro users, during the trial, or once already shown.
+    func presentTrialExpiryIfNeeded() {
+        let notifiedKey = "trialExpiryNotified"
+        guard !isPro, !isTrialActive, !defaults.bool(forKey: notifiedKey) else { return }
+        defaults.set(true, forKey: notifiedKey)
+
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Your BarTranslate Pro trial has ended"
+            alert.informativeText = "You can keep using BarTranslate for free. Upgrade to Pro to restore unlimited history, iCloud sync, and export/backup."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "Upgrade")
+            alert.addButton(withTitle: "Maybe Later")
+            if alert.runModal() == .alertFirstButtonReturn,
+               let url = URL(string: Constants.Links.proPurchase) {
+                NSWorkspace.shared.open(url)
+            }
+        }
+    }
+
     // MARK: Paywall prompt
 
     private func presentPaywallAlert(for feature: ProFeature) {
