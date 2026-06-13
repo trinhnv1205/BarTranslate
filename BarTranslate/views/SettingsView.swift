@@ -260,14 +260,28 @@ struct SettingsView: View {
                 // History
                 SettingsSection(title: "History") {
                     SettingsRow(label: "Saved items") {
-                        Picker("", selection: $historyLimit) {
-                            ForEach(historyOptions, id: \.self) { option in
-                                Text("\(option)").tag(option)
+                        HStack(spacing: 6) {
+                            if !pro.hasFullAccess {
+                                ProLockBadge()
                             }
+                            Picker("", selection: Binding(
+                                get: { pro.hasFullAccess ? historyLimit : min(historyLimit, ProManager.freeHistoryLimit) },
+                                set: { newValue in
+                                    if newValue > ProManager.freeHistoryLimit
+                                        && !pro.requireFullAccess(for: .unlimitedHistory) { return }
+                                    historyLimit = newValue
+                                }
+                            )) {
+                                ForEach(historyOptions, id: \.self) { option in
+                                    Text(option > ProManager.freeHistoryLimit && !pro.hasFullAccess
+                                         ? "\(option) (Pro)" : "\(option)")
+                                        .tag(option)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 110)
                         }
-                        .labelsHidden()
-                        .pickerStyle(.menu)
-                        .frame(width: 90)
                     }
                 }
 
