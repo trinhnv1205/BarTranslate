@@ -295,9 +295,9 @@ struct SettingsView: View {
                 SettingsSection(title: "In-Place") {
                     SettingsRow(label: "After translation") {
                         Picker("", selection: inPlaceAction) {
-                            Text("Do nothing").tag(InPlaceAction.none)
-                            Text("Copy result").tag(InPlaceAction.copy)
-                            Text("Paste to previous app").tag(InPlaceAction.paste)
+                            Text("Do nothing".loc).tag(InPlaceAction.none)
+                            Text("Copy result".loc).tag(InPlaceAction.copy)
+                            Text("Paste to previous app".loc).tag(InPlaceAction.paste)
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
@@ -309,9 +309,9 @@ struct SettingsView: View {
                 SettingsSection(title: "Appearance") {
                     SettingsRow(label: "Web theme") {
                         Picker("", selection: $webAppearance) {
-                            Text("System").tag(WebAppearance.system)
-                            Text("Light").tag(WebAppearance.light)
-                            Text("Dark").tag(WebAppearance.dark)
+                            Text("System".loc).tag(WebAppearance.system)
+                            Text("Light".loc).tag(WebAppearance.light)
+                            Text("Dark".loc).tag(WebAppearance.dark)
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
@@ -319,9 +319,9 @@ struct SettingsView: View {
                     }
                     SettingsRow(label: "Popover size") {
                         Picker("", selection: $popoverSize) {
-                            Text("Compact").tag(PopoverSize.compact)
-                            Text("Normal").tag(PopoverSize.normal)
-                            Text("Wide").tag(PopoverSize.wide)
+                            Text("Compact".loc).tag(PopoverSize.compact)
+                            Text("Normal".loc).tag(PopoverSize.normal)
+                            Text("Wide".loc).tag(PopoverSize.wide)
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
@@ -334,8 +334,8 @@ struct SettingsView: View {
                 }
 
                 // General
-                SettingsSection(title: "General".loc) {
-                    SettingsRow(label: "Language".loc) {
+                SettingsSection(title: "General") {
+                    SettingsRow(label: "Language") {
                         Picker("", selection: $appLanguage) {
                             ForEach(AppLanguage.allCases) { lang in
                                 Text(lang.displayName).tag(lang.rawValue)
@@ -388,7 +388,7 @@ struct SettingsView: View {
                     }
                     #if !APPSTORE
                     SettingsRow(label: "Updates") {
-                        Button("Check now") {
+                        Button("Check now".loc) {
                             UpdateChecker.shared.checkForUpdates()
                         }
                         .font(.system(size: 12))
@@ -417,7 +417,7 @@ struct SettingsView: View {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 11))
                             .foregroundColor(.pink)
-                        Text("Sponsor this project")
+                        Text("Sponsor this project".loc)
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.primary)
                         Spacer()
@@ -443,7 +443,7 @@ struct SettingsView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "power")
                             .font(.system(size: 11))
-                        Text("Quit BarTranslate")
+                        Text("Quit BarTranslate".loc)
                             .font(.system(size: 13))
                     }
                     .foregroundColor(Color(NSColor.systemRed))
@@ -485,7 +485,7 @@ struct SettingsSection<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(title.uppercased())
+            Text(title.loc.uppercased())
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.secondary)
                 .kerning(0.6)
@@ -504,7 +504,7 @@ struct SettingsRow<Trailing: View>: View {
 
     var body: some View {
         HStack {
-            Text(label)
+            Text(label.loc)
                 .font(.system(size: 13))
                 .foregroundColor(.primary)
             Spacer()
@@ -538,7 +538,7 @@ struct SettingsLinkRow: View {
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .frame(width: 16)
-                Text(label)
+                Text(label.loc)
                     .font(.system(size: 13))
                     .foregroundColor(.primary)
                 Spacer()
