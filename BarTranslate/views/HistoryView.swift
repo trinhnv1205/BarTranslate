@@ -67,27 +67,34 @@ struct HistoryView: View {
                 }
             }
 
-            if !BT.history.isEmpty {
-                HStack {
-                    Button("Export CSV") {
-                        BT.exportHistoryCSV()
+            HStack(spacing: 12) {
+                if !BT.history.isEmpty {
+                    Button("Export CSV") { BT.exportHistoryCSV() }
+                        .buttonStyle(.link)
+                        .font(.system(size: 11))
+                    Button("Backup") { BT.exportHistoryJSON() }
+                        .buttonStyle(.link)
+                        .font(.system(size: 11))
+                        .help("Save a full backup (favorites and flashcard progress included)")
+                }
+
+                Button("Restore") { BT.importHistoryJSON() }
+                    .buttonStyle(.link)
+                    .font(.system(size: 11))
+                    .help("Restore history from a backup file")
+
+                Spacer()
+
+                if BT.history.contains(where: { !$0.isFavorite }) {
+                    Button("Clear non-favorites") {
+                        BT.clearNonFavoriteHistory()
                     }
                     .buttonStyle(.link)
                     .font(.system(size: 11))
-
-                    Spacer()
-
-                    if BT.history.contains(where: { !$0.isFavorite }) {
-                        Button("Clear non-favorites") {
-                            BT.clearNonFavoriteHistory()
-                        }
-                        .buttonStyle(.link)
-                        .font(.system(size: 11))
-                    }
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 8)
             }
+            .padding(.horizontal, 14)
+            .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))

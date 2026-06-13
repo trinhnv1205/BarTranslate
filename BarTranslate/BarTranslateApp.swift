@@ -360,6 +360,45 @@ class BarTranslate: ObservableObject {
         return f.string(from: Date())
     }
 
+    /// Full-fidelity JSON backup (keeps favorites, flashcard progress, etc.).
+    func exportHistoryJSON() {
+        guard ProManager.shared.requireFullAccess(for: .csvExport) else { return }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "BarTranslate_Backup_\(dateStampForExport()).json"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted]
+        guard let data = try? encoder.encode(sortedHistory) else { return }
+        try? data.write(to: url)
+    }
+
+    /// Restore a JSON backup, merging it into the current history. Available on
+    /// every tier so users are never locked out of their own data.
+    func importHistoryJSON() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        guard let data = try? Data(contentsOf: url),
+              let items = try? JSONDecoder().decode([TranslationHistoryItem].self, from: data) else {
+            let alert = NSAlert()
+            alert.messageText = "Couldn't read backup"
+            alert.informativeText = "The selected file is not a valid BarTranslate backup."
+            alert.alertStyle = .warning
+            alert.runModal()
+            return
+        }
+
+        mergeHistory(remote: items)
+    }
+
     func captureAndStoreCurrentTranslation(completion: ((TranslationHistoryItem?) -> Void)? = nil) {
         guard let webView = webView else {
             completion?(nil)
