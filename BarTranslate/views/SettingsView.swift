@@ -10,6 +10,7 @@ import SwiftUI
 import Foundation
 import HotKey
 import ServiceManagement
+import ApplicationServices
 
 struct SettingsView: View {
 
@@ -53,7 +54,11 @@ struct SettingsView: View {
     private var inPlaceAction: Binding<InPlaceAction> {
         Binding<InPlaceAction>(
             get: { InPlaceAction(rawValue: inPlaceActionRaw) ?? .none },
-            set: { inPlaceActionRaw = $0.rawValue }
+            set: { newValue in
+                inPlaceActionRaw = newValue.rawValue
+                // Paste-back synthesizes ⌘V, which requires Accessibility access.
+                if newValue == .paste { promptForAccessibilityIfNeeded() }
+            }
         )
     }
 
@@ -547,6 +552,17 @@ struct ProLockBadge: View {
             .background(Capsule().fill(Color.accentColor))
             .help("Pro feature")
     }
+}
+
+// MARK: - Accessibility Permission Helper
+
+/// "Paste to previous app" posts a synthetic ⌘V keystroke, which macOS only
+/// allows when the app is trusted for Accessibility. Prompt the user to grant
+/// it (the system shows its own dialog and deep-links to System Settings).
+private func promptForAccessibilityIfNeeded() {
+    guard !AXIsProcessTrusted() else { return }
+    let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+    _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
 }
 
 // MARK: - Launch at Login Helper
