@@ -127,6 +127,7 @@ private struct HistoryRow: View {
                     Image(systemName: item.isFavorite ? "pin.fill" : "pin")
                 }
                 .help(item.isFavorite ? "Unpin" : "Pin")
+                .accessibilityLabel(item.isFavorite ? "Unpin" : "Pin")
 
                 Button {
                     BT.toggleFlashcardDeck(itemID: item.id)
@@ -134,6 +135,7 @@ private struct HistoryRow: View {
                     Image(systemName: item.isInFlashcardDeck ? "rectangle.stack.fill" : "rectangle.stack.badge.plus")
                 }
                 .help(item.isInFlashcardDeck ? "Remove from deck" : "Add to deck")
+                .accessibilityLabel(item.isInFlashcardDeck ? "Remove from flashcard deck" : "Add to flashcard deck")
 
                 Button {
                     BT.speak(text: item.resultText, language: item.targetLang)
@@ -141,6 +143,7 @@ private struct HistoryRow: View {
                     Image(systemName: "speaker.wave.2")
                 }
                 .help("Speak")
+                .accessibilityLabel("Speak translation")
 
                 Button {
                     NSPasteboard.general.clearContents()
@@ -149,6 +152,7 @@ private struct HistoryRow: View {
                     Image(systemName: "doc.on.doc")
                 }
                 .help("Copy")
+                .accessibilityLabel("Copy translation")
 
                 Button {
                     BT.removeHistory(itemID: item.id)
@@ -156,6 +160,7 @@ private struct HistoryRow: View {
                     Image(systemName: "trash")
                 }
                 .help("Delete")
+                .accessibilityLabel("Delete entry")
 
                 Spacer()
 
@@ -165,6 +170,7 @@ private struct HistoryRow: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .help("Reuse with original languages")
+                .accessibilityLabel("Reuse with original languages")
             }
             .buttonStyle(.link)
             .font(.system(size: 12))

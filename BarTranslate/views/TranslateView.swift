@@ -194,6 +194,7 @@ struct SwapLanguagesButton: View {
         .buttonStyle(PlainButtonStyle())
         .onHover { isHovered = $0 }
         .help("Swap languages")
+        .accessibilityLabel("Swap languages")
         .opacity(BT.lastSourceLang == "auto" ? 0.4 : 1)
         .disabled(BT.lastSourceLang == "auto")
     }
@@ -227,6 +228,7 @@ struct SpeakResultButton: View {
             .buttonStyle(PlainButtonStyle())
             .onHover { isHovered = $0 }
             .help(BT.isSpeaking ? "Stop speaking" : "Speak translation")
+            .accessibilityLabel(BT.isSpeaking ? "Stop speaking" : "Speak translation")
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
         }
     }
