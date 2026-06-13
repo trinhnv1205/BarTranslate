@@ -45,14 +45,17 @@ struct HistoryView: View {
 
             if filteredItems.isEmpty {
                 VStack(spacing: 8) {
-                    Image(systemName: "tray")
+                    Image(systemName: BT.history.isEmpty ? "tray" : "magnifyingglass")
                         .font(.system(size: 18))
                         .foregroundColor(.secondary)
-                    Text("No translations yet")
+                    Text(BT.history.isEmpty ? "No translations yet" : "No matches")
                         .font(.system(size: 13, weight: .medium))
-                    Text("Use Translate tab or clipboard auto translate to build history")
+                    Text(BT.history.isEmpty
+                         ? "Use Translate tab or clipboard auto translate to build history"
+                         : "Try a different search or filter")
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
