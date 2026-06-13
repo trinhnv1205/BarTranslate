@@ -31,6 +31,7 @@ Feel free to [share your ideas](https://github.com/ThijmenDam/BarTranslate/discu
 * **Flashcards** with spaced repetition to learn from your translations.
 * Text-to-speech, language swap, web dark mode, pinned popover, and launch at login.
 * Optional **iCloud sync** of history across your Macs.
+* **Bilingual UI** — English and Tiếng Việt (Settings ▸ General ▸ Language; follows the system language by default).
 
 ## BarTranslate Pro
 

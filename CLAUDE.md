@@ -54,6 +54,17 @@ open -a BarTranslate
 - `DefaultSettings.swift` provides static defaults (hotkeys, provider, limits)
 - Settings accessible via Settings menu or `SettingsView`
 
+### Localization (i18n)
+- `Localization.swift` — in-app translation layer. `"english".loc` returns the
+  Vietnamese string (or English fallback) based on `AppLanguage`
+  (System/English/Vietnamese, stored in `appLanguage`). Translations live in
+  `viTable` in code (not `.strings`/`.xcstrings`) because many custom views take
+  plain `String` params that SwiftUI renders verbatim, so system auto-l10n
+  wouldn't apply. Apply `.loc` to user-facing English source literals.
+- Shared `SettingsSection`/`SettingsRow`/`SettingsLinkRow` apply `.loc` to their
+  title/label internally, so call sites pass English literals.
+- Language picker: Settings ▸ General ▸ Language.
+
 ### Commercialization / Pro (freemium)
 - `ProManager.swift` — `ProManager` singleton (`ObservableObject`) is the single
   source of truth for entitlements. `hasFullAccess == isPro || isTrialActive`
