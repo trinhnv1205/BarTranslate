@@ -316,6 +316,32 @@ class BarTranslate: ObservableObject {
         }
     }
 
+    // MARK: - Reuse History Item
+
+    /// Re-run a stored translation in the Translate tab, restoring its language
+    /// pair first so the result matches the original entry.
+    func reuseHistoryItem(_ item: TranslationHistoryItem) {
+        guard let webView = webView else { return }
+        currentView = .translate
+
+        let needsLangChange = item.sourceLang != lastSourceLang || item.targetLang != lastTargetLang
+        if needsLangChange {
+            lastSourceLang = item.sourceLang
+            lastTargetLang = item.targetLang
+            reloadWebView(for: .google)
+            // Wait for the reloaded page before injecting the source text.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                injectClipboardText(webView: webView, text: item.sourceText)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    triggerTranslateNow(webView: webView)
+                }
+            }
+        } else {
+            injectClipboardText(webView: webView, text: item.sourceText)
+            triggerTranslateNow(webView: webView)
+        }
+    }
+
     // MARK: - Export History
 
     func exportHistoryCSV() {

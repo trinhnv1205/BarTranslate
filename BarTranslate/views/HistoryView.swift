@@ -160,16 +160,11 @@ private struct HistoryRow: View {
                 Spacer()
 
                 Button {
-                    guard let webView = BT.webView else { return }
-                    injectClipboardText(webView: webView, text: item.sourceText)
-                    triggerTranslateNow(webView: webView)
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        BT.currentView = .translate
-                    }
+                    BT.reuseHistoryItem(item)
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
-                .help("Reuse")
+                .help("Reuse with original languages")
             }
             .buttonStyle(.link)
             .font(.system(size: 12))
