@@ -306,16 +306,14 @@ struct FlashcardView: View {
 
                     Button {
                         BT.recordFlashcardReview(itemID: card.id, remembered: false)
-                        showAnswer = false
-                        moveToNextCard()
+                        advanceAfterReview()
                     } label: {
                         Label("Again", systemImage: "arrow.uturn.backward")
                     }
 
                     Button {
                         BT.recordFlashcardReview(itemID: card.id, remembered: true)
-                        showAnswer = false
-                        moveToNextCard()
+                        advanceAfterReview()
                     } label: {
                         Label("Remembered", systemImage: "checkmark.circle")
                     }
@@ -354,6 +352,20 @@ struct FlashcardView: View {
             return
         }
         currentIndex = (currentIndex + 1) % deck.count
+    }
+
+    /// Advance after grading a card. In "Due only" mode the graded card has
+    /// just left the deck, so the same index already points to the next card —
+    /// incrementing would skip one. Otherwise move forward normally.
+    private func advanceAfterReview() {
+        showAnswer = false
+        if dueOnly {
+            if currentIndex >= deck.count {
+                currentIndex = max(0, deck.count - 1)
+            }
+        } else {
+            moveToNextCard()
+        }
     }
 }
 
