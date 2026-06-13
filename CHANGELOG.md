@@ -16,6 +16,24 @@ A commercialization milestone: BarTranslate becomes a freemium app.
 - Added **Privacy Policy** (`PRIVACY.md`) and **Terms of Use** (`TERMS.md`).
 - History retention, iCloud sync, and CSV export are now Pro features. The free
   tier keeps up to 50 history items; Pro/trial unlocks the full 200.
+- Pro card now offers **Deactivate this Mac** to move a license between Macs.
+- Onboarding lets you **choose your primary target language**.
+- The history "Saved items" picker honestly reflects the free-tier cap.
+- Request an **App Store rating** after sustained use (once per version).
+- Set the app **copyright**; show version, build, and copyright in About.
+
+### Fixed
+- Never auto-delete **favorites** when enforcing the history limit (no silent
+  data loss when a trial ends).
+- Show a friendly **offline / retry** state instead of an endless spinner when
+  Google Translate can't be reached.
+- History **Reuse** now restores the entry's original language pair before
+  re-translating.
+- Prompt for **Accessibility** permission when enabling paste-back, which
+  needs it to synthesize ⌘V.
+
+### Chore
+- Stop tracking generated `build/` artifacts in version control.
 
 ## v2.0.0 | Autofocus; Removed DeepL
 
