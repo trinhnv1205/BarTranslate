@@ -222,8 +222,22 @@ class BarTranslate: ObservableObject {
         if !ProManager.shared.hasFullAccess {
             limit = min(limit, ProManager.freeHistoryLimit)
         }
-        if history.count > limit {
-            history = Array(history.prefix(limit))
+
+        guard history.count > limit else { return }
+
+        // Never auto-delete favorites — they are explicit user keepsakes and
+        // losing them (e.g. when a trial ends) would be silent data loss. Trim
+        // only the oldest non-favorite entries to honor the limit.
+        let keptFavoriteIDs = Set(history.filter { $0.isFavorite }.map { $0.id })
+        let favoriteCount = keptFavoriteIDs.count
+        let nonFavoriteBudget = max(0, limit - favoriteCount)
+
+        var keptNonFavorites = 0
+        history = history.filter { item in
+            if keptFavoriteIDs.contains(item.id) { return true }
+            guard keptNonFavorites < nonFavoriteBudget else { return false }
+            keptNonFavorites += 1
+            return true
         }
     }
 
