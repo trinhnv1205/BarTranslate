@@ -12,6 +12,14 @@ import AppKit
 
 enum TranslationProvider: String {
   case google
+
+  /// Builds the translation page URL for the given language pair.
+  func translationURL(source: String, target: String) -> URL? {
+    switch self {
+    case .google:
+      return URL(string: "https://translate.google.com/?sl=\(source)&tl=\(target)&op=translate")
+    }
+  }
 }
 
 enum InPlaceAction: String, CaseIterable, Identifiable {

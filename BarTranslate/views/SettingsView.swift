@@ -10,8 +10,11 @@ import SwiftUI
 import Foundation
 import HotKey
 import ServiceManagement
+import ApplicationServices
 
 struct SettingsView: View {
+
+    @ObservedObject private var pro = ProManager.shared
 
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = DefaultSettings.translationProvider
     @AppStorage("showHideKey") private var showHideKey: String = DefaultSettings.ToggleApp.key.description
@@ -30,6 +33,7 @@ struct SettingsView: View {
     @AppStorage("popoverSize") private var popoverSize: PopoverSize = .normal
     @AppStorage("checkForUpdates") private var checkForUpdates: Bool = DefaultSettings.checkForUpdates
     @AppStorage("iCloudSync") private var iCloudSync: Bool = DefaultSettings.iCloudSync
+    @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
 
     @AppStorage("swapLangKey") private var swapLangKey: String = DefaultSettings.SwapLang.key.description
     @AppStorage("swapLangModifier") private var swapLangModifier: String = DefaultSettings.SwapLang.modifier.description
@@ -42,16 +46,29 @@ struct SettingsView: View {
     @AppStorage("copyResultEnabled") private var copyResultEnabled: Bool = false
 
     private let historyOptions: [Int] = [50, 100, 150, 200]
+
+    private var feedbackMailto: String {
+        let version = Bundle.main.appVersionLong
+        let subject = "BarTranslate \(version) Feedback".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return "mailto:\(Constants.Links.supportEmail)?subject=\(subject)"
+    }
     private var inPlaceAction: Binding<InPlaceAction> {
         Binding<InPlaceAction>(
             get: { InPlaceAction(rawValue: inPlaceActionRaw) ?? .none },
-            set: { inPlaceActionRaw = $0.rawValue }
+            set: { newValue in
+                inPlaceActionRaw = newValue.rawValue
+                // Paste-back synthesizes ⌘V, which requires Accessibility access.
+                if newValue == .paste { promptForAccessibilityIfNeeded() }
+            }
         )
     }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
+
+                // BarTranslate Pro
+                ProSettingsCard()
 
                 // Translation Provider
                 SettingsSection(title: "Provider") {
@@ -249,14 +266,28 @@ struct SettingsView: View {
                 // History
                 SettingsSection(title: "History") {
                     SettingsRow(label: "Saved items") {
-                        Picker("", selection: $historyLimit) {
-                            ForEach(historyOptions, id: \.self) { option in
-                                Text("\(option)").tag(option)
+                        HStack(spacing: 6) {
+                            if !pro.hasFullAccess {
+                                ProLockBadge()
                             }
+                            Picker("", selection: Binding(
+                                get: { pro.hasFullAccess ? historyLimit : min(historyLimit, ProManager.freeHistoryLimit) },
+                                set: { newValue in
+                                    if newValue > ProManager.freeHistoryLimit
+                                        && !pro.requireFullAccess(for: .unlimitedHistory) { return }
+                                    historyLimit = newValue
+                                }
+                            )) {
+                                ForEach(historyOptions, id: \.self) { option in
+                                    Text(option > ProManager.freeHistoryLimit && !pro.hasFullAccess
+                                         ? "\(option) (Pro)" : "\(option)")
+                                        .tag(option)
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(width: 110)
                         }
-                        .labelsHidden()
-                        .pickerStyle(.menu)
-                        .frame(width: 90)
                     }
                 }
 
@@ -264,9 +295,9 @@ struct SettingsView: View {
                 SettingsSection(title: "In-Place") {
                     SettingsRow(label: "After translation") {
                         Picker("", selection: inPlaceAction) {
-                            Text("Do nothing").tag(InPlaceAction.none)
-                            Text("Copy result").tag(InPlaceAction.copy)
-                            Text("Paste to previous app").tag(InPlaceAction.paste)
+                            Text("Do nothing".loc).tag(InPlaceAction.none)
+                            Text("Copy result".loc).tag(InPlaceAction.copy)
+                            Text("Paste to previous app".loc).tag(InPlaceAction.paste)
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
@@ -278,9 +309,9 @@ struct SettingsView: View {
                 SettingsSection(title: "Appearance") {
                     SettingsRow(label: "Web theme") {
                         Picker("", selection: $webAppearance) {
-                            Text("System").tag(WebAppearance.system)
-                            Text("Light").tag(WebAppearance.light)
-                            Text("Dark").tag(WebAppearance.dark)
+                            Text("System".loc).tag(WebAppearance.system)
+                            Text("Light".loc).tag(WebAppearance.light)
+                            Text("Dark".loc).tag(WebAppearance.dark)
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
@@ -288,9 +319,9 @@ struct SettingsView: View {
                     }
                     SettingsRow(label: "Popover size") {
                         Picker("", selection: $popoverSize) {
-                            Text("Compact").tag(PopoverSize.compact)
-                            Text("Normal").tag(PopoverSize.normal)
-                            Text("Wide").tag(PopoverSize.wide)
+                            Text("Compact".loc).tag(PopoverSize.compact)
+                            Text("Normal".loc).tag(PopoverSize.normal)
+                            Text("Wide".loc).tag(PopoverSize.wide)
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
@@ -304,6 +335,16 @@ struct SettingsView: View {
 
                 // General
                 SettingsSection(title: "General") {
+                    SettingsRow(label: "Language") {
+                        Picker("", selection: $appLanguage) {
+                            ForEach(AppLanguage.allCases) { lang in
+                                Text(lang.displayName).tag(lang.rawValue)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 120)
+                    }
                     SettingsRow(label: "Launch at login") {
                         Toggle("", isOn: Binding(
                             get: { launchAtLogin },
@@ -315,8 +356,20 @@ struct SettingsView: View {
                         .labelsHidden()
                     }
                     SettingsRow(label: "iCloud sync") {
-                        Toggle("", isOn: $iCloudSync)
+                        HStack(spacing: 6) {
+                            if !pro.hasFullAccess {
+                                ProLockBadge()
+                            }
+                            Toggle("", isOn: Binding(
+                                get: { iCloudSync && pro.hasFullAccess },
+                                set: { newValue in
+                                    if newValue && !pro.requireFullAccess(for: .iCloudSync) { return }
+                                    iCloudSync = newValue
+                                }
+                            ))
                             .labelsHidden()
+                            .disabled(!pro.hasFullAccess)
+                        }
                     }
                     #if !APPSTORE
                     SettingsRow(label: "Check for updates") {
@@ -329,18 +382,32 @@ struct SettingsView: View {
                 // About
                 SettingsSection(title: "About") {
                     SettingsRow(label: "Version") {
-                        Text(Bundle.main.appVersionLong)
+                        Text("\(Bundle.main.appVersionLong) (\(Bundle.main.appBuild))")
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                     }
                     #if !APPSTORE
                     SettingsRow(label: "Updates") {
-                        Button("Check now") {
+                        Button("Check now".loc) {
                             UpdateChecker.shared.checkForUpdates()
                         }
                         .font(.system(size: 12))
                     }
                     #endif
+                }
+
+                // Support & Legal
+                SettingsSection(title: "Support & Legal") {
+                    SettingsLinkRow(label: "Send feedback", systemImage: "envelope",
+                                    urlString: feedbackMailto)
+                    SettingsLinkRow(label: "Rate BarTranslate", systemImage: "star",
+                                    urlString: Constants.Links.appStore)
+                    SettingsLinkRow(label: "Website", systemImage: "globe",
+                                    urlString: Constants.Links.website)
+                    SettingsLinkRow(label: "Privacy Policy", systemImage: "hand.raised",
+                                    urlString: Constants.Links.privacy)
+                    SettingsLinkRow(label: "Terms of Use", systemImage: "doc.text",
+                                    urlString: Constants.Links.terms)
                 }
 
                 #if !APPSTORE
@@ -350,7 +417,7 @@ struct SettingsView: View {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 11))
                             .foregroundColor(.pink)
-                        Text("Sponsor this project")
+                        Text("Sponsor this project".loc)
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.primary)
                         Spacer()
@@ -372,11 +439,11 @@ struct SettingsView: View {
                 #endif
 
                 // Quit
-                Button(action: { exit(0) }) {
+                Button(action: { NSApplication.shared.terminate(nil) }) {
                     HStack(spacing: 6) {
                         Image(systemName: "power")
                             .font(.system(size: 11))
-                        Text("Quit BarTranslate")
+                        Text("Quit BarTranslate".loc)
                             .font(.system(size: 13))
                     }
                     .foregroundColor(Color(NSColor.systemRed))
@@ -393,6 +460,15 @@ struct SettingsView: View {
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
+
+                // Copyright
+                Text(Bundle.main.copyright.isEmpty
+                     ? "© 2023–2026 BarTranslate"
+                     : Bundle.main.copyright)
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 2)
             }
             .padding(14)
         }
@@ -409,7 +485,7 @@ struct SettingsSection<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(title.uppercased())
+            Text(title.loc.uppercased())
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.secondary)
                 .kerning(0.6)
@@ -428,7 +504,7 @@ struct SettingsRow<Trailing: View>: View {
 
     var body: some View {
         HStack {
-            Text(label)
+            Text(label.loc)
                 .font(.system(size: 13))
                 .foregroundColor(.primary)
             Spacer()
@@ -445,6 +521,68 @@ struct SettingsRow<Trailing: View>: View {
                 )
         )
     }
+}
+
+struct SettingsLinkRow: View {
+    let label: String
+    let systemImage: String
+    let urlString: String
+
+    var body: some View {
+        Button {
+            guard let url = URL(string: urlString) else { return }
+            NSWorkspace.shared.open(url)
+        } label: {
+            HStack {
+                Image(systemName: systemImage)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .frame(width: 16)
+                Text(label.loc)
+                    .font(.system(size: 13))
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(NSColor.controlBackgroundColor))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color(NSColor.separatorColor).opacity(0.35), lineWidth: 0.5)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+/// Small "PRO" pill used to mark gated controls.
+struct ProLockBadge: View {
+    var body: some View {
+        Text("PRO")
+            .font(.system(size: 9, weight: .bold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(Capsule().fill(Color.accentColor))
+            .help("Pro feature")
+    }
+}
+
+// MARK: - Accessibility Permission Helper
+
+/// "Paste to previous app" posts a synthetic ⌘V keystroke, which macOS only
+/// allows when the app is trusted for Accessibility. Prompt the user to grant
+/// it (the system shows its own dialog and deep-links to System Settings).
+private func promptForAccessibilityIfNeeded() {
+    guard !AXIsProcessTrusted() else { return }
+    let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+    _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
 }
 
 // MARK: - Launch at Login Helper

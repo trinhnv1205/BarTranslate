@@ -45,6 +45,10 @@ private func inject(webView: WKWebView, css: String, provider: TranslationProvid
     })()
   """
     
+  // injectCSS runs on every reload/swap (twice each: local + remote). Without
+  // clearing first, these user scripts accumulate unboundedly and all re-run on
+  // every page load. CSS is the only addUserScript user, so this is safe.
+  webView.configuration.userContentController.removeAllUserScripts()
   webView.configuration.userContentController.addUserScript(
     WKUserScript(source: javascript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
   )
@@ -57,24 +61,36 @@ private func fallbackCSS(provider: TranslationProvider) -> String {
   return readFileBy(name: "\(provider)", type: "css")
 }
 
+/// Remote CSS fetched this session, keyed by provider. Only accessed on the
+/// main thread (injectCSS is always called from the main thread).
+private var remoteCSSCache: [String: String] = [:]
+
 // Injects CSS into the translation webview, such that redundant elements are hidden.
 func injectCSS(webView: WKWebView, provider: TranslationProvider) {
   // Links to the CSS that has to be injected for Google translate
   let gistGoogle = "https://gist.github.com/ThijmenDam/6d8727f27ff1a1c5397682d866ffae9b/raw/css-injection-google.css"
   let gistURL = URL(string: gistGoogle)!
-  
+
   // 1. Synchronously inject the local fallback CSS immediately to prevent FOUC (Flash of Unstyled Content)
   let localCSS = fallbackCSS(provider: provider)
   inject(webView: webView, css: localCSS, provider: provider)
-  
-  // 2. Asynchronously fetch the latest CSS update without blocking the main thread
-  let task = URLSession.shared.dataTask(with: gistURL) { data, response, error in 
+
+  // 2. If we already fetched the remote CSS this session, reuse it instead of
+  //    hitting the network again on every reload/swap.
+  if let cached = remoteCSSCache[provider.rawValue] {
+    inject(webView: webView, css: cached, provider: provider)
+    return
+  }
+
+  // 3. Otherwise fetch the latest CSS once, cache it, and inject it.
+  let task = URLSession.shared.dataTask(with: gistURL) { data, response, error in
     if let error = error {
       print("[WARNING] Failed to retrieve GitHub Gist. Reason: \(error)")
     } else if let data = data, let response = response as? HTTPURLResponse {
       if response.statusCode == 200 {
         if let fetchedCSS = String(data: data, encoding: .utf8) {
             DispatchQueue.main.async {
+                remoteCSSCache[provider.rawValue] = fetchedCSS
                 inject(webView: webView, css: fetchedCSS, provider: provider)
                 print("Injected remote CSS for \(provider)")
             }
@@ -84,7 +100,7 @@ func injectCSS(webView: WKWebView, provider: TranslationProvider) {
       }
     }
   }
-  task.resume() 
+  task.resume()
 }
 
 

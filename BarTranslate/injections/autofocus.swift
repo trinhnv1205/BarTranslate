@@ -9,7 +9,9 @@ import Foundation
 import WebKit
 
 func injectFocusScript(webView: WKWebView, provider: TranslationProvider) {
-  let script = "document.querySelector('textarea').focus();"
+  // Guard against a missing textarea (page not yet loaded / different page),
+  // which would otherwise throw a TypeError.
+  let script = "var ta = document.querySelector('textarea'); if (ta) ta.focus();"
 
   webView.evaluateJavaScript(script) { result, error in
     if let error = error {

@@ -34,6 +34,7 @@ struct BarTranslateApp: App {
 class BarTranslate: ObservableObject {
     @Published var currentView: CurrentContentView = .translate
     @Published var isLoading: Bool = true
+    @Published var loadFailed: Bool = false
     @Published var characterCount: Int = 0
     @Published var hasResult: Bool = false
     @Published var justCopied: Bool = false
@@ -60,16 +61,19 @@ class BarTranslate: ObservableObject {
         loadHistory()
     }
 
+    /// Retry loading after a failure (e.g. the Mac came back online).
+    func retryLoad(for provider: TranslationProvider) {
+        loadFailed = false
+        isLoading = true
+        reloadWebView(for: provider)
+    }
+
     func reloadWebView(for provider: TranslationProvider) {
         guard let webView = webView else { return }
 
-        let sl = lastSourceLang
-        let tl = lastTargetLang
-        let urlString = "https://translate.google.com/?sl=\(sl)&tl=\(tl)&op=translate"
-        let providerURL = URL(string: urlString)!
-        let request = URLRequest(url: providerURL)
+        guard let providerURL = provider.translationURL(source: lastSourceLang, target: lastTargetLang) else { return }
 
-        webView.load(request)
+        webView.load(URLRequest(url: providerURL))
         injectCSS(webView: webView, provider: provider)
     }
 
@@ -196,6 +200,7 @@ class BarTranslate: ObservableObject {
 
         enforceHistoryLimit()
         saveHistory()
+        RatingPrompter.recordSuccessfulTranslation()
         return true
     }
 
@@ -217,9 +222,27 @@ class BarTranslate: ObservableObject {
 
     private func enforceHistoryLimit() {
         let configuredLimit = UserDefaults.standard.integer(forKey: "historyLimit")
-        let limit = max(50, min(configuredLimit == 0 ? DefaultSettings.historyLimit : configuredLimit, 200))
-        if history.count > limit {
-            history = Array(history.prefix(limit))
+        var limit = max(50, min(configuredLimit == 0 ? DefaultSettings.historyLimit : configuredLimit, 200))
+        // Free tier keeps a smaller history; Pro/trial unlocks the full limit.
+        if !ProManager.shared.hasFullAccess {
+            limit = min(limit, ProManager.freeHistoryLimit)
+        }
+
+        guard history.count > limit else { return }
+
+        // Never auto-delete favorites — they are explicit user keepsakes and
+        // losing them (e.g. when a trial ends) would be silent data loss. Trim
+        // only the oldest non-favorite entries to honor the limit.
+        let keptFavoriteIDs = Set(history.filter { $0.isFavorite }.map { $0.id })
+        let favoriteCount = keptFavoriteIDs.count
+        let nonFavoriteBudget = max(0, limit - favoriteCount)
+
+        var keptNonFavorites = 0
+        history = history.filter { item in
+            if keptFavoriteIDs.contains(item.id) { return true }
+            guard keptNonFavorites < nonFavoriteBudget else { return false }
+            keptNonFavorites += 1
+            return true
         }
     }
 
@@ -278,21 +301,42 @@ class BarTranslate: ObservableObject {
     func swapLanguages() {
         guard lastSourceLang != "auto" else { return }
         let oldSource = lastSourceLang
-        let oldTarget = lastTargetLang
-        lastSourceLang = oldTarget
+        lastSourceLang = lastTargetLang
         lastTargetLang = oldSource
+        reloadWebView(for: .google)
+    }
 
+    // MARK: - Reuse History Item
+
+    /// Re-run a stored translation in the Translate tab, restoring its language
+    /// pair first so the result matches the original entry.
+    func reuseHistoryItem(_ item: TranslationHistoryItem) {
         guard let webView = webView else { return }
-        let urlString = "https://translate.google.com/?sl=\(lastSourceLang)&tl=\(lastTargetLang)&op=translate"
-        if let url = URL(string: urlString) {
-            webView.load(URLRequest(url: url))
-            injectCSS(webView: webView, provider: .google)
+        currentView = .translate
+
+        let needsLangChange = item.sourceLang != lastSourceLang || item.targetLang != lastTargetLang
+        if needsLangChange {
+            lastSourceLang = item.sourceLang
+            lastTargetLang = item.targetLang
+            reloadWebView(for: .google)
+            // Wait for the reloaded page before injecting the source text.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                injectClipboardText(webView: webView, text: item.sourceText)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    triggerTranslateNow(webView: webView)
+                }
+            }
+        } else {
+            injectClipboardText(webView: webView, text: item.sourceText)
+            triggerTranslateNow(webView: webView)
         }
     }
 
     // MARK: - Export History
 
     func exportHistoryCSV() {
+        guard ProManager.shared.requireFullAccess(for: .dataExport) else { return }
+
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.nameFieldStringValue = "BarTranslate_History_\(dateStampForExport()).csv"
@@ -314,6 +358,45 @@ class BarTranslate: ObservableObject {
         let f = DateFormatter()
         f.dateFormat = "yyyyMMdd"
         return f.string(from: Date())
+    }
+
+    /// Full-fidelity JSON backup (keeps favorites, flashcard progress, etc.).
+    func exportHistoryJSON() {
+        guard ProManager.shared.requireFullAccess(for: .dataExport) else { return }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "BarTranslate_Backup_\(dateStampForExport()).json"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted]
+        guard let data = try? encoder.encode(sortedHistory) else { return }
+        try? data.write(to: url)
+    }
+
+    /// Restore a JSON backup, merging it into the current history. Available on
+    /// every tier so users are never locked out of their own data.
+    func importHistoryJSON() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        guard let data = try? Data(contentsOf: url),
+              let items = try? JSONDecoder().decode([TranslationHistoryItem].self, from: data) else {
+            let alert = NSAlert()
+            alert.messageText = "Couldn't read backup".loc
+            alert.informativeText = "The selected file is not a valid BarTranslate backup.".loc
+            alert.alertStyle = .warning
+            alert.runModal()
+            return
+        }
+
+        mergeHistory(remote: items)
     }
 
     func captureAndStoreCurrentTranslation(completion: ((TranslationHistoryItem?) -> Void)? = nil) {
@@ -343,14 +426,16 @@ class BarTranslate: ObservableObject {
     private var iCloudObserver: NSObjectProtocol?
 
     func configureICloudSync(enabled: Bool) {
-        iCloudSyncEnabled = enabled
+        // iCloud sync is a Pro feature; only enable it with full access.
+        let effectiveEnabled = enabled && ProManager.shared.hasFullAccess
+        iCloudSyncEnabled = effectiveEnabled
 
         if let observer = iCloudObserver {
             NotificationCenter.default.removeObserver(observer)
             iCloudObserver = nil
         }
 
-        guard enabled else { return }
+        guard effectiveEnabled else { return }
 
         // Push current history to iCloud
         pushHistoryToICloud()
@@ -513,6 +598,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     var BT: BarTranslate = BarTranslate()
 
+    /// UserDefaults keys observed via KVO. Single source of truth so the
+    /// add/remove observer lists in init/deinit can never drift apart.
+    private static let observedDefaultsKeys = [
+        "showHideKey", "showHideModifier", "showHideEnabled",
+        "translateNowKey", "translateNowModifier", "translateNowEnabled",
+        "swapLangKey", "swapLangModifier", "swapLangEnabled",
+        "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
+        "copyResultKey", "copyResultModifier", "copyResultEnabled",
+        "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
+        "popoverSize", "iCloudSync"
+    ]
+
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = DefaultSettings.translationProvider
     @AppStorage("showHideKey") private var showHideKey: String = DefaultSettings.ToggleApp.key.description
     @AppStorage("showHideModifier") private var showHideModifier: String = DefaultSettings.ToggleApp.modifier.description
@@ -542,31 +639,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     override init() {
         super.init()
-        let observedKeys = [
-            "showHideKey", "showHideModifier", "showHideEnabled",
-            "translateNowKey", "translateNowModifier", "translateNowEnabled",
-            "swapLangKey", "swapLangModifier", "swapLangEnabled",
-            "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
-            "copyResultKey", "copyResultModifier", "copyResultEnabled",
-            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
-            "popoverSize", "iCloudSync"
-        ]
-        for key in observedKeys {
+        for key in Self.observedDefaultsKeys {
             UserDefaults.standard.addObserver(self, forKeyPath: key, options: .new, context: nil)
         }
     }
 
     deinit {
-        let observedKeys = [
-            "showHideKey", "showHideModifier", "showHideEnabled",
-            "translateNowKey", "translateNowModifier", "translateNowEnabled",
-            "swapLangKey", "swapLangModifier", "swapLangEnabled",
-            "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
-            "copyResultKey", "copyResultModifier", "copyResultEnabled",
-            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
-            "popoverSize", "iCloudSync"
-        ]
-        for key in observedKeys {
+        for key in Self.observedDefaultsKeys {
             UserDefaults.standard.removeObserver(self, forKeyPath: key)
         }
         clipboardWatcherTimer?.invalidate()
@@ -711,8 +790,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let webView = BT.webView else { return }
         readTranslationResult(from: webView) { text in
             guard let text, !text.isEmpty else { return }
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(text, forType: .string)
+            self.setClipboard(text)
             DispatchQueue.main.async {
                 withAnimation { self.BT.justCopied = true }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -779,6 +857,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // iCloud sync
         BT.configureICloudSync(enabled: iCloudSync)
+
+        // First-run onboarding
+        OnboardingController.shared.presentIfNeeded()
+
+        // One-time nudge the first launch after the trial ends
+        ProManager.shared.presentTrialExpiryIfNeeded()
 
         // Check for updates on launch
         #if !APPSTORE
@@ -866,17 +950,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Writes text to the clipboard and records it as self-originated so the
+    /// auto-translate clipboard watcher does not re-translate the app's own
+    /// output (which would cause a feedback loop).
+    func setClipboard(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        lastPasteboardChangeCount = NSPasteboard.general.changeCount
+        lastClipboardText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     func performInPlaceActionIfNeeded(with translatedText: String) {
         guard let action = InPlaceAction(rawValue: inPlaceActionRaw) else { return }
         switch action {
         case .none:
             return
         case .copy:
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(translatedText, forType: .string)
+            setClipboard(translatedText)
         case .paste:
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(translatedText, forType: .string)
+            setClipboard(translatedText)
             pasteBackToPreviousApp()
         }
     }
@@ -933,11 +1025,15 @@ class UpdateChecker {
 
     private func showUpdateAlert(version: String, url: String) {
         let alert = NSAlert()
-        alert.messageText = "Update Available"
-        alert.informativeText = "BarTranslate \(version) is available. You are currently running \(Bundle.main.appVersionLong)."
+        alert.messageText = "Update Available".loc
+        if Localization.isVietnamese {
+            alert.informativeText = "Đã có BarTranslate \(version). Bạn đang dùng \(Bundle.main.appVersionLong)."
+        } else {
+            alert.informativeText = "BarTranslate \(version) is available. You are currently running \(Bundle.main.appVersionLong)."
+        }
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Download")
-        alert.addButton(withTitle: "Later")
+        alert.addButton(withTitle: "Download".loc)
+        alert.addButton(withTitle: "Later".loc)
 
         if alert.runModal() == .alertFirstButtonReturn {
             if let downloadURL = URL(string: url) {

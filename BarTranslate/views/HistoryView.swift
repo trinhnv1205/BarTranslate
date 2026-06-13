@@ -18,11 +18,11 @@ struct HistoryView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
-                TextField("Search source, result, or language", text: $searchQuery)
+                TextField("Search source, result, or language".loc, text: $searchQuery)
                     .textFieldStyle(.roundedBorder)
 
                 Picker("Language", selection: $languageFilter) {
-                    Text("All").tag("all")
+                    Text("All".loc).tag("all")
                     ForEach(BT.allHistoryLanguages(), id: \.self) { lang in
                         Text(lang.uppercased()).tag(lang)
                     }
@@ -38,21 +38,24 @@ struct HistoryView: View {
                         .foregroundColor(favoritesOnly ? Color(NSColor.systemOrange) : .secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help(favoritesOnly ? "Show all" : "Show favorites only")
+                .help(favoritesOnly ? "Show all".loc : "Show favorites only".loc)
             }
             .padding(.horizontal, 12)
             .padding(.top, 10)
 
             if filteredItems.isEmpty {
                 VStack(spacing: 8) {
-                    Image(systemName: "tray")
+                    Image(systemName: BT.history.isEmpty ? "tray" : "magnifyingglass")
                         .font(.system(size: 18))
                         .foregroundColor(.secondary)
-                    Text("No translations yet")
+                    Text(BT.history.isEmpty ? "No translations yet".loc : "No matches".loc)
                         .font(.system(size: 13, weight: .medium))
-                    Text("Use Translate tab or clipboard auto translate to build history")
+                    Text(BT.history.isEmpty
+                         ? "Use Translate tab or clipboard auto translate to build history".loc
+                         : "Try a different search or filter".loc)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -67,27 +70,34 @@ struct HistoryView: View {
                 }
             }
 
-            if !BT.history.isEmpty {
-                HStack {
-                    Button("Export CSV") {
-                        BT.exportHistoryCSV()
+            HStack(spacing: 12) {
+                if !BT.history.isEmpty {
+                    Button("Export CSV".loc) { BT.exportHistoryCSV() }
+                        .buttonStyle(.link)
+                        .font(.system(size: 11))
+                    Button("Backup".loc) { BT.exportHistoryJSON() }
+                        .buttonStyle(.link)
+                        .font(.system(size: 11))
+                        .help("Save a full backup (favorites and flashcard progress included)")
+                }
+
+                Button("Restore".loc) { BT.importHistoryJSON() }
+                    .buttonStyle(.link)
+                    .font(.system(size: 11))
+                    .help("Restore history from a backup file")
+
+                Spacer()
+
+                if BT.history.contains(where: { !$0.isFavorite }) {
+                    Button("Clear non-favorites".loc) {
+                        BT.clearNonFavoriteHistory()
                     }
                     .buttonStyle(.link)
                     .font(.system(size: 11))
-
-                    Spacer()
-
-                    if BT.history.contains(where: { !$0.isFavorite }) {
-                        Button("Clear non-favorites") {
-                            BT.clearNonFavoriteHistory()
-                        }
-                        .buttonStyle(.link)
-                        .font(.system(size: 11))
-                    }
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 8)
             }
+            .padding(.horizontal, 14)
+            .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
@@ -126,50 +136,50 @@ private struct HistoryRow: View {
                 } label: {
                     Image(systemName: item.isFavorite ? "pin.fill" : "pin")
                 }
-                .help(item.isFavorite ? "Unpin" : "Pin")
+                .help(item.isFavorite ? "Unpin".loc : "Pin".loc)
+                .accessibilityLabel(item.isFavorite ? "Unpin".loc : "Pin".loc)
 
                 Button {
                     BT.toggleFlashcardDeck(itemID: item.id)
                 } label: {
                     Image(systemName: item.isInFlashcardDeck ? "rectangle.stack.fill" : "rectangle.stack.badge.plus")
                 }
-                .help(item.isInFlashcardDeck ? "Remove from deck" : "Add to deck")
+                .help(item.isInFlashcardDeck ? "Remove from flashcard deck".loc : "Add to flashcard deck".loc)
+                .accessibilityLabel(item.isInFlashcardDeck ? "Remove from flashcard deck".loc : "Add to flashcard deck".loc)
 
                 Button {
                     BT.speak(text: item.resultText, language: item.targetLang)
                 } label: {
                     Image(systemName: "speaker.wave.2")
                 }
-                .help("Speak")
+                .help("Speak".loc)
+                .accessibilityLabel("Speak translation".loc)
 
                 Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(item.resultText, forType: .string)
+                    AppDelegate.instance?.setClipboard(item.resultText)
                 } label: {
                     Image(systemName: "doc.on.doc")
                 }
-                .help("Copy")
+                .help("Copy".loc)
+                .accessibilityLabel("Copy translation".loc)
 
                 Button {
                     BT.removeHistory(itemID: item.id)
                 } label: {
                     Image(systemName: "trash")
                 }
-                .help("Delete")
+                .help("Delete".loc)
+                .accessibilityLabel("Delete entry".loc)
 
                 Spacer()
 
                 Button {
-                    guard let webView = BT.webView else { return }
-                    injectClipboardText(webView: webView, text: item.sourceText)
-                    triggerTranslateNow(webView: webView)
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        BT.currentView = .translate
-                    }
+                    BT.reuseHistoryItem(item)
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
-                .help("Reuse")
+                .help("Reuse with original languages".loc)
+                .accessibilityLabel("Reuse with original languages".loc)
             }
             .buttonStyle(.link)
             .font(.system(size: 12))
@@ -214,10 +224,10 @@ struct FlashcardView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
-                TextField("Search flashcards", text: $searchQuery)
+                TextField("Search flashcards".loc, text: $searchQuery)
                     .textFieldStyle(.roundedBorder)
 
-                Toggle("Due only", isOn: $dueOnly)
+                Toggle("Due only".loc, isOn: $dueOnly)
                     .toggleStyle(.switch)
                     .font(.system(size: 11))
             }
@@ -225,9 +235,9 @@ struct FlashcardView: View {
             .padding(.top, 10)
 
             HStack(spacing: 8) {
-                StatBadge(title: "Deck", value: "\(BT.history.filter { $0.isInFlashcardDeck }.count)")
-                StatBadge(title: "Due", value: "\(dueCount)")
-                StatBadge(title: "Mastered", value: "\(masteredCount)")
+                StatBadge(title: "Deck".loc, value: "\(BT.history.filter { $0.isInFlashcardDeck }.count)")
+                StatBadge(title: "Due".loc, value: "\(dueCount)")
+                StatBadge(title: "Mastered".loc, value: "\(masteredCount)")
                 Spacer()
             }
             .padding(.horizontal, 12)
@@ -235,7 +245,7 @@ struct FlashcardView: View {
             if let card = currentCard {
                 VStack(spacing: 10) {
                     VStack(spacing: 6) {
-                        Text(showAnswer ? "Back" : "Front")
+                        Text(showAnswer ? "Back".loc : "Front".loc)
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(.secondary)
 
@@ -256,10 +266,10 @@ struct FlashcardView: View {
                     Spacer(minLength: 6)
 
                     HStack(spacing: 6) {
-                        Label("Score \(card.memoryScore)/5", systemImage: "brain")
+                        Label(Localization.isVietnamese ? "Điểm \(card.memoryScore)/5" : "Score \(card.memoryScore)/5", systemImage: "brain")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
-                        Text("Reviews \(card.reviewCount)")
+                        Text(Localization.isVietnamese ? "Lượt ôn \(card.reviewCount)" : "Reviews \(card.reviewCount)")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
@@ -282,31 +292,29 @@ struct FlashcardView: View {
                         currentIndex = (currentIndex - 1 + deck.count) % deck.count
                         showAnswer = false
                     } label: {
-                        Label("Prev", systemImage: "arrow.left")
+                        Label("Prev".loc, systemImage: "arrow.left")
                     }
 
                     Button {
                         showAnswer.toggle()
                     } label: {
-                        Label(showAnswer ? "Hide" : "Flip", systemImage: "arrow.2.squarepath")
+                        Label(showAnswer ? "Hide".loc : "Flip".loc, systemImage: "arrow.2.squarepath")
                     }
 
                     Spacer()
 
                     Button {
                         BT.recordFlashcardReview(itemID: card.id, remembered: false)
-                        showAnswer = false
-                        moveToNextCard()
+                        advanceAfterReview()
                     } label: {
-                        Label("Again", systemImage: "arrow.uturn.backward")
+                        Label("Again".loc, systemImage: "arrow.uturn.backward")
                     }
 
                     Button {
                         BT.recordFlashcardReview(itemID: card.id, remembered: true)
-                        showAnswer = false
-                        moveToNextCard()
+                        advanceAfterReview()
                     } label: {
-                        Label("Remembered", systemImage: "checkmark.circle")
+                        Label("Remembered".loc, systemImage: "checkmark.circle")
                     }
                 }
                 .buttonStyle(.link)
@@ -318,9 +326,9 @@ struct FlashcardView: View {
                     Image(systemName: "rectangle.stack")
                         .font(.system(size: 18))
                         .foregroundColor(.secondary)
-                    Text("No flashcards available")
+                    Text("No flashcards available".loc)
                         .font(.system(size: 13, weight: .medium))
-                    Text("Add cards from History, or disable Due only to review everything")
+                    Text("Add cards from History, or disable Due only to review everything".loc)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                 }
@@ -343,6 +351,20 @@ struct FlashcardView: View {
             return
         }
         currentIndex = (currentIndex + 1) % deck.count
+    }
+
+    /// Advance after grading a card. In "Due only" mode the graded card has
+    /// just left the deck, so the same index already points to the next card —
+    /// incrementing would skip one. Otherwise move forward normally.
+    private func advanceAfterReview() {
+        showAnswer = false
+        if dueOnly {
+            if currentIndex >= deck.count {
+                currentIndex = max(0, deck.count - 1)
+            }
+        } else {
+            moveToNextCard()
+        }
     }
 }
 

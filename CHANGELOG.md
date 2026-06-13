@@ -1,5 +1,44 @@
 # BarTranslate Changelog
 
+## Unreleased | BarTranslate Pro
+
+A commercialization milestone: BarTranslate becomes a freemium app.
+
+- **Free 14-day trial** that unlocks every premium feature, after which Pro
+  features require a one-time unlock (`ProManager`).
+- **Offline license activation** via `BART-XXXX-XXXX-XXXX` keys, with the
+  entitlement layer structured for a future StoreKit in-app purchase.
+- **Pro upgrade card** in Settings showing trial/Pro status, plus a license-key
+  entry sheet.
+- **First-run onboarding** window introducing core features and the trial.
+- **Support & Legal** section in Settings: send feedback, rate the app, website,
+  Privacy Policy, and Terms of Use.
+- Added **Privacy Policy** (`PRIVACY.md`) and **Terms of Use** (`TERMS.md`).
+- History retention, iCloud sync, and CSV export are now Pro features. The free
+  tier keeps up to 50 history items; Pro/trial unlocks the full 200.
+- Pro card now offers **Deactivate this Mac** to move a license between Macs.
+- Onboarding lets you **choose your primary target language**.
+- The history "Saved items" picker honestly reflects the free-tier cap.
+- Request an **App Store rating** after sustained use (once per version).
+- Set the app **copyright**; show version, build, and copyright in About.
+- Full-fidelity **JSON backup & restore** of history (favorites and flashcard
+  progress included); restore merges and is available on every tier.
+- **Vietnamese localization** of the entire UI, with a language picker
+  (System/English/Tiếng Việt) in Settings ▸ General.
+
+### Fixed
+- Never auto-delete **favorites** when enforcing the history limit (no silent
+  data loss when a trial ends).
+- Show a friendly **offline / retry** state instead of an endless spinner when
+  Google Translate can't be reached.
+- History **Reuse** now restores the entry's original language pair before
+  re-translating.
+- Prompt for **Accessibility** permission when enabling paste-back, which
+  needs it to synthesize ⌘V.
+
+### Chore
+- Stop tracking generated `build/` artifacts in version control.
+
 ## v2.0.0 | Autofocus; Removed DeepL
 
 - When opening BarTranslate, the translation input is now focussed automatically (except on startup).

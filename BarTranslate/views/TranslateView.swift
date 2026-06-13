@@ -30,7 +30,7 @@ struct TranslateView: View {
                     ProgressView()
                         .scaleEffect(0.7)
                         .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
-                    Text("Loading…")
+                    Text("Loading…".loc)
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                 }
@@ -39,8 +39,36 @@ struct TranslateView: View {
                 .transition(.opacity)
             }
 
-            // Feature overlays (hidden during loading)
-            if !BT.isLoading {
+            // Offline / load failure overlay
+            if BT.loadFailed && !BT.isLoading {
+                VStack(spacing: 12) {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 28, weight: .light))
+                        .foregroundColor(.secondary)
+                    Text("Can't reach Google Translate".loc)
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Check your internet connection and try again.".loc)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        BT.retryLoad(for: translationProvider)
+                    } label: {
+                        Text("Retry".loc)
+                            .font(.system(size: 12, weight: .semibold))
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(NSColor.windowBackgroundColor))
+                .transition(.opacity)
+            }
+
+            // Feature overlays (hidden during loading / failure)
+            if !BT.isLoading && !BT.loadFailed {
                 VStack(spacing: 0) {
                     Spacer()
                     HStack(alignment: .bottom) {
@@ -105,7 +133,7 @@ struct CopyResultButton: View {
                 HStack(spacing: 5) {
                     Image(systemName: BT.justCopied ? "checkmark" : "doc.on.doc")
                         .font(.system(size: 11, weight: .medium))
-                    Text(BT.justCopied ? "Copied!" : "Copy")
+                    Text(BT.justCopied ? "Copied!".loc : "Copy".loc)
                         .font(.system(size: 11, weight: .medium))
                 }
                 .foregroundColor(BT.justCopied ? Color(NSColor.systemGreen) : (isHovered ? .primary : .secondary))
@@ -134,8 +162,7 @@ struct CopyResultButton: View {
         guard let webView = BT.webView else { return }
         readTranslationResult(from: webView) { text in
             guard let text = text, !text.isEmpty else { return }
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(text, forType: .string)
+            AppDelegate.instance?.setClipboard(text)
             withAnimation { BT.justCopied = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation { BT.justCopied = false }
@@ -165,7 +192,8 @@ struct SwapLanguagesButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .onHover { isHovered = $0 }
-        .help("Swap languages")
+        .help("Swap languages".loc)
+        .accessibilityLabel("Swap languages".loc)
         .opacity(BT.lastSourceLang == "auto" ? 0.4 : 1)
         .disabled(BT.lastSourceLang == "auto")
     }
@@ -198,7 +226,8 @@ struct SpeakResultButton: View {
             }
             .buttonStyle(PlainButtonStyle())
             .onHover { isHovered = $0 }
-            .help(BT.isSpeaking ? "Stop speaking" : "Speak translation")
+            .help(BT.isSpeaking ? "Stop speaking".loc : "Speak translation".loc)
+            .accessibilityLabel(BT.isSpeaking ? "Stop speaking".loc : "Speak translation".loc)
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
         }
     }
@@ -318,6 +347,7 @@ struct WebView: NSViewRepresentable {
                 withAnimation(.easeIn(duration: 0.2)) {
                     webView.isHidden = false
                     self.parent.BT.isLoading = false
+                    self.parent.BT.loadFailed = false
                 }
                 // Inject feature scripts after a short delay to let page settle
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -336,8 +366,30 @@ struct WebView: NSViewRepresentable {
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
             DispatchQueue.main.async {
                 self.parent.BT.isLoading = true
+                self.parent.BT.loadFailed = false
                 self.parent.BT.hasResult = false
                 self.parent.BT.characterCount = 0
+            }
+        }
+
+        // Network/load failures (e.g. offline) — surface a friendly retry state
+        // instead of leaving the loading spinner running forever.
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            handleLoadFailure(error)
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            handleLoadFailure(error)
+        }
+
+        private func handleLoadFailure(_ error: Error) {
+            // Ignore cancellations caused by rapid reloads / navigation changes.
+            if (error as NSError).code == NSURLErrorCancelled { return }
+            DispatchQueue.main.async {
+                withAnimation {
+                    self.parent.BT.isLoading = false
+                    self.parent.BT.loadFailed = true
+                }
             }
         }
     }
