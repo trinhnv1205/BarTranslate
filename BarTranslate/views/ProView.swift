@@ -16,6 +16,7 @@ import AppKit
 struct ProSettingsCard: View {
     @ObservedObject private var pro = ProManager.shared
     @State private var showingActivation = false
+    @State private var showingDeactivateConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -54,6 +55,12 @@ struct ProSettingsCard: View {
                         .padding(.vertical, 6)
                         .background(Capsule().stroke(Color.white.opacity(0.7), lineWidth: 1))
                 }
+            } else if !pro.licenseKey.isEmpty {
+                Button("Deactivate this Mac") { showingDeactivateConfirm = true }
+                    .font(.system(size: 11, weight: .medium))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.white.opacity(0.9))
+                    .help("Remove the license from this Mac so it can be used on another.")
             }
         }
         .padding(14)
@@ -72,6 +79,16 @@ struct ProSettingsCard: View {
         )
         .sheet(isPresented: $showingActivation) {
             LicenseActivationView()
+        }
+        .confirmationDialog(
+            "Deactivate BarTranslate Pro on this Mac?",
+            isPresented: $showingDeactivateConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Deactivate", role: .destructive) { pro.deactivate() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Your license key will be removed from this Mac. You can re-activate it here at any time.")
         }
     }
 
