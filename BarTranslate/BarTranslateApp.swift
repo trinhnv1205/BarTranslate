@@ -71,13 +71,9 @@ class BarTranslate: ObservableObject {
     func reloadWebView(for provider: TranslationProvider) {
         guard let webView = webView else { return }
 
-        let sl = lastSourceLang
-        let tl = lastTargetLang
-        let urlString = "https://translate.google.com/?sl=\(sl)&tl=\(tl)&op=translate"
-        let providerURL = URL(string: urlString)!
-        let request = URLRequest(url: providerURL)
+        guard let providerURL = provider.translationURL(source: lastSourceLang, target: lastTargetLang) else { return }
 
-        webView.load(request)
+        webView.load(URLRequest(url: providerURL))
         injectCSS(webView: webView, provider: provider)
     }
 
