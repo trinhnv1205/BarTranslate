@@ -266,10 +266,10 @@ struct FlashcardView: View {
                     Spacer(minLength: 6)
 
                     HStack(spacing: 6) {
-                        Label("Score \(card.memoryScore)/5", systemImage: "brain")
+                        Label(Localization.isVietnamese ? "Điểm \(card.memoryScore)/5" : "Score \(card.memoryScore)/5", systemImage: "brain")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
-                        Text("Reviews \(card.reviewCount)")
+                        Text(Localization.isVietnamese ? "Lượt ôn \(card.reviewCount)" : "Reviews \(card.reviewCount)")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
