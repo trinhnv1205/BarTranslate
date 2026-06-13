@@ -33,6 +33,7 @@ struct SettingsView: View {
     @AppStorage("popoverSize") private var popoverSize: PopoverSize = .normal
     @AppStorage("checkForUpdates") private var checkForUpdates: Bool = DefaultSettings.checkForUpdates
     @AppStorage("iCloudSync") private var iCloudSync: Bool = DefaultSettings.iCloudSync
+    @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
 
     @AppStorage("swapLangKey") private var swapLangKey: String = DefaultSettings.SwapLang.key.description
     @AppStorage("swapLangModifier") private var swapLangModifier: String = DefaultSettings.SwapLang.modifier.description
@@ -333,7 +334,17 @@ struct SettingsView: View {
                 }
 
                 // General
-                SettingsSection(title: "General") {
+                SettingsSection(title: "General".loc) {
+                    SettingsRow(label: "Language".loc) {
+                        Picker("", selection: $appLanguage) {
+                            ForEach(AppLanguage.allCases) { lang in
+                                Text(lang.displayName).tag(lang.rawValue)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 120)
+                    }
                     SettingsRow(label: "Launch at login") {
                         Toggle("", isOn: Binding(
                             get: { launchAtLogin },
