@@ -164,6 +164,15 @@ struct LicenseActivationView: View {
 struct OnboardingView: View {
     var onFinish: () -> Void
     @State private var page = 0
+    @State private var targetLang: String = UserDefaults.standard.string(forKey: "lastTargetLang") ?? "vi"
+
+    /// A small, curated set of common target languages shown during onboarding.
+    private let languages: [(code: String, name: String)] = [
+        ("vi", "Tiếng Việt"), ("en", "English"), ("ja", "日本語"),
+        ("ko", "한국어"), ("zh-CN", "中文 (简体)"), ("zh-TW", "中文 (繁體)"),
+        ("fr", "Français"), ("de", "Deutsch"), ("es", "Español"),
+        ("pt", "Português"), ("ru", "Русский"), ("th", "ไทย")
+    ]
 
     private let pages: [OnboardingPage] = [
         OnboardingPage(
@@ -204,6 +213,22 @@ struct OnboardingView: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 320)
+
+                if page == pages.count - 1 {
+                    HStack(spacing: 6) {
+                        Text("Translate into")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                        Picker("", selection: $targetLang) {
+                            ForEach(languages, id: \.code) { lang in
+                                Text(lang.name).tag(lang.code)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 150)
+                    }
+                    .padding(.top, 4)
+                }
             }
             .padding(.horizontal, 24)
             Spacer(minLength: 0)
@@ -236,6 +261,10 @@ struct OnboardingView: View {
         if page < pages.count - 1 {
             withAnimation(.easeInOut(duration: 0.2)) { page += 1 }
         } else {
+            // Persist the chosen target language and reload so the first
+            // translation already uses it.
+            UserDefaults.standard.set(targetLang, forKey: "lastTargetLang")
+            AppDelegate.instance?.BT.reloadWebView(for: .google)
             onFinish()
         }
     }
