@@ -389,8 +389,8 @@ class BarTranslate: ObservableObject {
         guard let data = try? Data(contentsOf: url),
               let items = try? JSONDecoder().decode([TranslationHistoryItem].self, from: data) else {
             let alert = NSAlert()
-            alert.messageText = "Couldn't read backup"
-            alert.informativeText = "The selected file is not a valid BarTranslate backup."
+            alert.messageText = "Couldn't read backup".loc
+            alert.informativeText = "The selected file is not a valid BarTranslate backup.".loc
             alert.alertStyle = .warning
             alert.runModal()
             return
@@ -1025,11 +1025,15 @@ class UpdateChecker {
 
     private func showUpdateAlert(version: String, url: String) {
         let alert = NSAlert()
-        alert.messageText = "Update Available"
-        alert.informativeText = "BarTranslate \(version) is available. You are currently running \(Bundle.main.appVersionLong)."
+        alert.messageText = "Update Available".loc
+        if Localization.isVietnamese {
+            alert.informativeText = "Đã có BarTranslate \(version). Bạn đang dùng \(Bundle.main.appVersionLong)."
+        } else {
+            alert.informativeText = "BarTranslate \(version) is available. You are currently running \(Bundle.main.appVersionLong)."
+        }
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Download")
-        alert.addButton(withTitle: "Later")
+        alert.addButton(withTitle: "Download".loc)
+        alert.addButton(withTitle: "Later".loc)
 
         if alert.runModal() == .alertFirstButtonReturn {
             if let downloadURL = URL(string: url) {

@@ -116,6 +116,14 @@ private let viTable: [String: String] = [
         "Bạn vẫn có thể tiếp tục dùng BarTranslate miễn phí. Nâng cấp lên Pro để khôi phục lịch sử không giới hạn, đồng bộ iCloud và xuất/sao lưu dữ liệu.",
     "Maybe Later": "Để sau",
 
+    // Alerts (backup restore, updates)
+    "Couldn't read backup": "Không đọc được bản sao lưu",
+    "The selected file is not a valid BarTranslate backup.":
+        "Tệp đã chọn không phải bản sao lưu BarTranslate hợp lệ.",
+    "Update Available": "Có bản cập nhật",
+    "Download": "Tải về",
+    "Later": "Để sau",
+
     // Settings sections & rows
     "Provider": "Nhà cung cấp",
     "Translation engine": "Công cụ dịch",
