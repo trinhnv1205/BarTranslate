@@ -162,8 +162,7 @@ struct CopyResultButton: View {
         guard let webView = BT.webView else { return }
         readTranslationResult(from: webView) { text in
             guard let text = text, !text.isEmpty else { return }
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(text, forType: .string)
+            AppDelegate.instance?.setClipboard(text)
             withAnimation { BT.justCopied = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation { BT.justCopied = false }

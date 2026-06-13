@@ -790,8 +790,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let webView = BT.webView else { return }
         readTranslationResult(from: webView) { text in
             guard let text, !text.isEmpty else { return }
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(text, forType: .string)
+            self.setClipboard(text)
             DispatchQueue.main.async {
                 withAnimation { self.BT.justCopied = true }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -951,17 +950,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Writes text to the clipboard and records it as self-originated so the
+    /// auto-translate clipboard watcher does not re-translate the app's own
+    /// output (which would cause a feedback loop).
+    func setClipboard(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        lastPasteboardChangeCount = NSPasteboard.general.changeCount
+        lastClipboardText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     func performInPlaceActionIfNeeded(with translatedText: String) {
         guard let action = InPlaceAction(rawValue: inPlaceActionRaw) else { return }
         switch action {
         case .none:
             return
         case .copy:
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(translatedText, forType: .string)
+            setClipboard(translatedText)
         case .paste:
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(translatedText, forType: .string)
+            setClipboard(translatedText)
             pasteBackToPreviousApp()
         }
     }

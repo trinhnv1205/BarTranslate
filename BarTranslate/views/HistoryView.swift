@@ -156,8 +156,7 @@ private struct HistoryRow: View {
                 .accessibilityLabel("Speak translation")
 
                 Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(item.resultText, forType: .string)
+                    AppDelegate.instance?.setClipboard(item.resultText)
                 } label: {
                     Image(systemName: "doc.on.doc")
                 }
