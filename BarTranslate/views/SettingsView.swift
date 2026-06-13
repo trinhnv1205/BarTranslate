@@ -371,7 +371,7 @@ struct SettingsView: View {
                 // About
                 SettingsSection(title: "About") {
                     SettingsRow(label: "Version") {
-                        Text(Bundle.main.appVersionLong)
+                        Text("\(Bundle.main.appVersionLong) (\(Bundle.main.appBuild))")
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                     }
@@ -449,6 +449,15 @@ struct SettingsView: View {
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
+
+                // Copyright
+                Text(Bundle.main.copyright.isEmpty
+                     ? "© 2023–2026 BarTranslate"
+                     : Bundle.main.copyright)
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 2)
             }
             .padding(14)
         }
