@@ -305,16 +305,9 @@ class BarTranslate: ObservableObject {
     func swapLanguages() {
         guard lastSourceLang != "auto" else { return }
         let oldSource = lastSourceLang
-        let oldTarget = lastTargetLang
-        lastSourceLang = oldTarget
+        lastSourceLang = lastTargetLang
         lastTargetLang = oldSource
-
-        guard let webView = webView else { return }
-        let urlString = "https://translate.google.com/?sl=\(lastSourceLang)&tl=\(lastTargetLang)&op=translate"
-        if let url = URL(string: urlString) {
-            webView.load(URLRequest(url: url))
-            injectCSS(webView: webView, provider: .google)
-        }
+        reloadWebView(for: .google)
     }
 
     // MARK: - Reuse History Item
