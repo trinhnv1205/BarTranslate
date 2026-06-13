@@ -204,6 +204,7 @@ class BarTranslate: ObservableObject {
 
         enforceHistoryLimit()
         saveHistory()
+        RatingPrompter.recordSuccessfulTranslation()
         return true
     }
 

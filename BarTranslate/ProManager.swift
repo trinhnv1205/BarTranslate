@@ -15,6 +15,7 @@ import Foundation
 import Combine
 import CryptoKit
 import AppKit
+import StoreKit
 
 // MARK: - Pro Features
 
@@ -233,5 +234,35 @@ enum LicenseValidator {
         let g1 = String(hex.prefix(groupLength))
         let g2 = String(hex.dropFirst(groupLength).prefix(groupLength))
         return "\(prefix)-\(g1)-\(g2)-\(checksum(for: g1 + g2))"
+    }
+}
+
+// MARK: - Rating Prompter
+
+/// Requests an App Store rating after the user has gotten value from the app,
+/// and at most once per app version. macOS decides whether to actually show
+/// the dialog; outside the App Store this is a harmless no-op.
+enum RatingPrompter {
+    private static let countKey = "ratingTranslationCount"
+    private static let lastPromptedVersionKey = "ratingLastPromptedVersion"
+    private static let threshold = 15
+
+    /// Call once per successful translation.
+    static func recordSuccessfulTranslation() {
+        let defaults = UserDefaults.standard
+        let count = defaults.integer(forKey: countKey) + 1
+        defaults.set(count, forKey: countKey)
+
+        guard count >= threshold else { return }
+
+        let version = Bundle.main.appVersionLong
+        guard defaults.string(forKey: lastPromptedVersionKey) != version else { return }
+
+        defaults.set(version, forKey: lastPromptedVersionKey)
+        defaults.set(0, forKey: countKey)
+
+        DispatchQueue.main.async {
+            SKStoreReviewController.requestReview()
+        }
     }
 }
