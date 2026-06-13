@@ -34,6 +34,7 @@ struct BarTranslateApp: App {
 class BarTranslate: ObservableObject {
     @Published var currentView: CurrentContentView = .translate
     @Published var isLoading: Bool = true
+    @Published var loadFailed: Bool = false
     @Published var characterCount: Int = 0
     @Published var hasResult: Bool = false
     @Published var justCopied: Bool = false
@@ -58,6 +59,13 @@ class BarTranslate: ObservableObject {
 
     init() {
         loadHistory()
+    }
+
+    /// Retry loading after a failure (e.g. the Mac came back online).
+    func retryLoad(for provider: TranslationProvider) {
+        loadFailed = false
+        isLoading = true
+        reloadWebView(for: provider)
     }
 
     func reloadWebView(for provider: TranslationProvider) {
