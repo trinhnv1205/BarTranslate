@@ -559,6 +559,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     var BT: BarTranslate = BarTranslate()
 
+    /// UserDefaults keys observed via KVO. Single source of truth so the
+    /// add/remove observer lists in init/deinit can never drift apart.
+    private static let observedDefaultsKeys = [
+        "showHideKey", "showHideModifier", "showHideEnabled",
+        "translateNowKey", "translateNowModifier", "translateNowEnabled",
+        "swapLangKey", "swapLangModifier", "swapLangEnabled",
+        "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
+        "copyResultKey", "copyResultModifier", "copyResultEnabled",
+        "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
+        "popoverSize", "iCloudSync"
+    ]
+
     @AppStorage("translationProvider") private var translationProvider: TranslationProvider = DefaultSettings.translationProvider
     @AppStorage("showHideKey") private var showHideKey: String = DefaultSettings.ToggleApp.key.description
     @AppStorage("showHideModifier") private var showHideModifier: String = DefaultSettings.ToggleApp.modifier.description
@@ -588,31 +600,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     override init() {
         super.init()
-        let observedKeys = [
-            "showHideKey", "showHideModifier", "showHideEnabled",
-            "translateNowKey", "translateNowModifier", "translateNowEnabled",
-            "swapLangKey", "swapLangModifier", "swapLangEnabled",
-            "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
-            "copyResultKey", "copyResultModifier", "copyResultEnabled",
-            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
-            "popoverSize", "iCloudSync"
-        ]
-        for key in observedKeys {
+        for key in Self.observedDefaultsKeys {
             UserDefaults.standard.addObserver(self, forKeyPath: key, options: .new, context: nil)
         }
     }
 
     deinit {
-        let observedKeys = [
-            "showHideKey", "showHideModifier", "showHideEnabled",
-            "translateNowKey", "translateNowModifier", "translateNowEnabled",
-            "swapLangKey", "swapLangModifier", "swapLangEnabled",
-            "translateClipboardKey", "translateClipboardModifier", "translateClipboardEnabled",
-            "copyResultKey", "copyResultModifier", "copyResultEnabled",
-            "menuBarIcon", "autoClipboardTranslate", "pinPopover", "webAppearance",
-            "popoverSize", "iCloudSync"
-        ]
-        for key in observedKeys {
+        for key in Self.observedDefaultsKeys {
             UserDefaults.standard.removeObserver(self, forKeyPath: key)
         }
         clipboardWatcherTimer?.invalidate()
