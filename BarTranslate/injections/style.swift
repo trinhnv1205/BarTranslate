@@ -45,6 +45,10 @@ private func inject(webView: WKWebView, css: String, provider: TranslationProvid
     })()
   """
     
+  // injectCSS runs on every reload/swap (twice each: local + remote). Without
+  // clearing first, these user scripts accumulate unboundedly and all re-run on
+  // every page load. CSS is the only addUserScript user, so this is safe.
+  webView.configuration.userContentController.removeAllUserScripts()
   webView.configuration.userContentController.addUserScript(
     WKUserScript(source: javascript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
   )
